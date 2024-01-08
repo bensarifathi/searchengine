@@ -1,4 +1,4 @@
-package com.finalprojectdaar.searchengine.services;
+package com.finalprojectdaar.searchengine.algorithmes;
 
 import java.util.HashMap;
 import java.util.HashSet;

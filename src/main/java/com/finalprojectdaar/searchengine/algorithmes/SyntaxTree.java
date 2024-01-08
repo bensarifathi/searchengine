@@ -1,4 +1,8 @@
-package com.finalprojectdaar.searchengine.services;
+package com.finalprojectdaar.searchengine.algorithmes;
+
+import com.finalprojectdaar.searchengine.algorithmes.BinaryTree;
+import com.finalprojectdaar.searchengine.algorithmes.LeafNode;
+import com.finalprojectdaar.searchengine.algorithmes.Node;
 
 import java.util.HashSet;
 import java.util.Set;
