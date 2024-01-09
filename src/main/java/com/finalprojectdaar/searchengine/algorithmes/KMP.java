@@ -1,19 +1,16 @@
 package com.finalprojectdaar.searchengine.algorithmes;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
 @Component
 public class KMP {
     String pattern;
+    @Getter
     int[] lspArray;
-
-    public int[] getLspArray() {
-        return lspArray;
-    }
 
     public void init(String pattern) {
         this.pattern = pattern;

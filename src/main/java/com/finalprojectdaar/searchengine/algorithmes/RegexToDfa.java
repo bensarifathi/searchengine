@@ -14,7 +14,7 @@ import java.util.Set;
 @Component
 public class RegexToDfa {
 
-    private static Set<Integer>[] followPos;
+    private static HashSet[] followPos;
     private static Node root;
     private static Set<State> DStates;
 
@@ -24,7 +24,7 @@ public class RegexToDfa {
 
     public boolean findMatch(String regex, Integer textID) throws IOException {
         DStates = new HashSet<>();
-        input = new HashSet<String>();
+        input = new HashSet<>();
         getSymbols(regex);
         SyntaxTree st = new SyntaxTree(regex);
         root = st.getRoot(); //root of the syntax tree

@@ -19,10 +19,10 @@ class BinaryTree {
     
     // Stacks for symbol nodes and operators
     private final Stack<Node> stackNode = new Stack<>();
-    private final Stack<Character> operator = new Stack<Character>();
+    private final Stack<Character> operator = new Stack<>();
 
     // Set of inputs
-    private final Set<Character> input = new HashSet<Character>();
+    private final Set<Character> input = new HashSet<>();
     private final ArrayList<Character> op = new ArrayList<>();
 
     // Generates tree using the regular expression and returns it's root
@@ -62,7 +62,7 @@ class BinaryTree {
             if (isSymbol || isInputCharacter(regular.charAt(i))) {
                 if (isSymbol) {
                     //create a node with "\{symbol}" symbol 
-                    pushStack("\\"+Character.toString(regular.charAt(i)));
+                    pushStack("\\"+ regular.charAt(i));
                 }
                 else{
                     pushStack(Character.toString(regular.charAt(i)));
@@ -97,8 +97,7 @@ class BinaryTree {
         }
 
         // Get the complete Tree
-        Node completeTree = stackNode.pop();
-        return completeTree;
+        return stackNode.pop();
     }
 
     private boolean Priority(char first, Character second) {
@@ -125,7 +124,7 @@ class BinaryTree {
 
     // Do the desired operation based on the top of stackNode
     private void doOperation() {
-        if (this.operator.size() > 0) {
+        if (!this.operator.isEmpty()) {
             char charAt = operator.pop();
 
             switch (charAt) {
@@ -209,7 +208,7 @@ class BinaryTree {
     // add "." when is concatenation between to symbols that: "." -> "&"
     // concatenates to each other
     private String AddConcat(String regular) {
-        String newRegular = new String("");
+        StringBuilder newRegular = new StringBuilder();
 
         for (int i = 0; i < regular.length() - 1; i++) {
             /*
@@ -224,34 +223,37 @@ class BinaryTree {
              *#  ) & (
              */
             if (regular.charAt(i) == '\\' && isInputCharacter(regular.charAt(i + 1))) {
-                newRegular += regular.charAt(i);
+                newRegular.append(regular.charAt(i));
             } else if (regular.charAt(i) == '\\' && regular.charAt(i + 1) == '(') {
-                newRegular += regular.charAt(i);
-            } else if ((isInputCharacter(regular.charAt(i)) || (regular.charAt(i) == '(' && i > 0 && regular.charAt(i - 1) == '\\')) && isInputCharacter(regular.charAt(i + 1))) {
-                newRegular += regular.charAt(i) + "&";
-
-            } else if ((isInputCharacter(regular.charAt(i)) || (regular.charAt(i) == '(' && i > 0 && regular.charAt(i - 1) == '\\')) && regular.charAt(i + 1) == '(') {
-                newRegular += regular.charAt(i) + "&";
-
-            } else if (regular.charAt(i) == ')' && isInputCharacter(regular.charAt(i + 1))) {
-                newRegular += regular.charAt(i) + "&";
-
-            } else if (regular.charAt(i) == '*' && isInputCharacter(regular.charAt(i + 1))) {
-                newRegular += regular.charAt(i) + "&";
-
-            } else if (regular.charAt(i) == '*' && regular.charAt(i + 1) == '(') {
-                newRegular += regular.charAt(i) + "&";
-
-            } else if (regular.charAt(i) == ')' && regular.charAt(i + 1) == '(') {
-                newRegular += regular.charAt(i) + "&";
-
+                newRegular.append(regular.charAt(i));
             } else {
-                newRegular += regular.charAt(i);
+                boolean hasOpeningBrackets = regular.charAt(i) == '(' && i > 0 && regular.charAt(i - 1) == '\\';
+                if ((isInputCharacter(regular.charAt(i)) || hasOpeningBrackets) && isInputCharacter(regular.charAt(i + 1))) {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else if ((isInputCharacter(regular.charAt(i)) || hasOpeningBrackets) && regular.charAt(i + 1) == '(') {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else if (regular.charAt(i) == ')' && isInputCharacter(regular.charAt(i + 1))) {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else if (regular.charAt(i) == '*' && isInputCharacter(regular.charAt(i + 1))) {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else if (regular.charAt(i) == '*' && regular.charAt(i + 1) == '(') {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else if (regular.charAt(i) == ')' && regular.charAt(i + 1) == '(') {
+                    newRegular.append(regular.charAt(i)).append("&");
+
+                } else {
+                    newRegular.append(regular.charAt(i));
+                }
             }
 
         }
-        newRegular += regular.charAt(regular.length() - 1);
-        return newRegular;
+        newRegular.append(regular.charAt(regular.length() - 1));
+        return newRegular.toString();
     }
 
     // Return true if is part of the automata Language else is false
@@ -261,7 +263,7 @@ class BinaryTree {
             return false;
         }
         for (Character c : input) {
-            if ((char) c == charAt && charAt != '(' && charAt != ')') {
+            if ( c == charAt && charAt != '(' && charAt != ')') {
                 return true;
             }
         }

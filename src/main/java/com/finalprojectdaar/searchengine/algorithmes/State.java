@@ -1,21 +1,24 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 
 public class State {
-    
-    private int ID;
+
+    @Getter
     private Set<Integer> name;
-    private HashMap<String, State> move;
+    private final HashMap<String, State> move;
     
     private boolean IsAcceptable;
+    @Setter
     private boolean IsMarked;
     
     public State(int ID){
-        this.ID = ID;
         move = new HashMap<>();
         name = new HashSet<>();
         IsAcceptable = false;
@@ -32,17 +35,9 @@ public class State {
     public void addAllToName(Set<Integer> number){
         name.addAll(number);
     }
-    
-    public void setIsMarked(boolean bool){
-        IsMarked = bool;
-    }
-    
+
     public boolean getIsMarked(){
         return IsMarked;
-    }
-    
-    public Set<Integer> getName(){
-        return name;
     }
 
     public void setAccept() {
