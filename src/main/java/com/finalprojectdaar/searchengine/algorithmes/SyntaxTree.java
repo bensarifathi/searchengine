@@ -1,30 +1,22 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
-import com.finalprojectdaar.searchengine.algorithmes.BinaryTree;
-import com.finalprojectdaar.searchengine.algorithmes.LeafNode;
-import com.finalprojectdaar.searchengine.algorithmes.Node;
+import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@Getter
 public class SyntaxTree {
 
-    private final String regex;
-    private final BinaryTree bt;
     private final Node root; //the head of raw syntax tree
-    private final int numOfLeafs;
-    private final Set<Integer>[] followPos;
+    private final HashSet[] followPos;
 
     public SyntaxTree(String regex) {
-        this.regex = regex;
-        bt = new BinaryTree();
-        
-        /**
-         * generates the binary tree of the syntax tree
-         */
+        BinaryTree bt = new BinaryTree();
+
         root = bt.generateTree(regex);
-        numOfLeafs = bt.getNumberOfLeafs();
-        followPos = new Set[numOfLeafs];
+        int numOfLeafs = bt.getNumberOfLeafs();
+        followPos = new HashSet[numOfLeafs];
         for (int i = 0; i < numOfLeafs; i++) {
             followPos[i] = new HashSet<>();
         }
@@ -61,8 +53,7 @@ public class SyntaxTree {
         if (node == null) {
             return;
         }
-        if (node instanceof LeafNode) {
-            LeafNode lnode = (LeafNode) node;
+        if (node instanceof LeafNode lnode) {
             node.addToFirstPos(lnode.getNum());
             node.addToLastPos(lnode.getNum());
         } else {
@@ -109,17 +100,17 @@ public class SyntaxTree {
         Node right = node.getRight();
         switch (node.getSymbol()) {
             case "&":
-                Object lastpos_c1[] = left.getLastPos().toArray();
+                Object[] lastpos_c1 = left.getLastPos().toArray();
                 Set<Integer> firstpos_c2 = right.getFirstPos();
-                for (int i = 0; i < lastpos_c1.length; i++) {
-                    followPos[(Integer) lastpos_c1[i] - 1].addAll(firstpos_c2);
+                for (Object o : lastpos_c1) {
+                    followPos[(Integer) o - 1].addAll(firstpos_c2);
                 }
                 break;
             case "*":
-                Object lastpos_n[] = node.getLastPos().toArray();
+                Object[] lastpos_n = node.getLastPos().toArray();
                 Set<Integer> firstpos_n = node.getFirstPos();
-                for (int i = 0; i < lastpos_n.length; i++) {
-                    followPos[(Integer) lastpos_n[i] - 1].addAll(firstpos_n);
+                for (Object o : lastpos_n) {
+                    followPos[(Integer) o - 1].addAll(firstpos_n);
                 }
                 break;
         }
@@ -133,22 +124,15 @@ public class SyntaxTree {
             return;
         }
         show(node.getLeft());
-        Object s[] = node.getLastPos().toArray();
+        Object[] s = node.getLastPos().toArray();
 
         show(node.getRight());
     }
 
     public void showFollowPos() {
-        for (int i = 0; i < followPos.length; i++) {
-            Object s[] = followPos[i].toArray();
+        for (HashSet followPo : followPos) {
+            Object[] s = followPo.toArray();
         }
     }
 
-    public Set<Integer>[] getFollowPos() {
-        return followPos;
-    }
-
-    public Node getRoot() {
-        return this.root;
-    }
 }

@@ -1,9 +1,5 @@
 package com.finalprojectdaar.searchengine.algorithmes;
-
-
 import java.util.*;
-
-
 class BinaryTree {
     
     /*
@@ -22,12 +18,12 @@ class BinaryTree {
     private int leafNodeID = 0;
     
     // Stacks for symbol nodes and operators
-    private Stack<Node> stackNode = new Stack<>();
-    private Stack<Character> operator = new Stack<Character>();
+    private final Stack<Node> stackNode = new Stack<>();
+    private final Stack<Character> operator = new Stack<Character>();
 
     // Set of inputs
-    private Set<Character> input = new HashSet<Character>();
-    private ArrayList<Character> op = new ArrayList<>();
+    private final Set<Character> input = new HashSet<Character>();
+    private final ArrayList<Character> op = new ArrayList<>();
 
     // Generates tree using the regular expression and returns it's root
     public Node generateTree(String regular) {
@@ -36,13 +32,13 @@ class BinaryTree {
         op.addAll(Arrays.asList(ops));
 
         // Only inputs available
-        Character ch[] = new Character[26 + 26];
+        Character[] ch = new Character[26 + 26];
         for (int i = 65; i <= 90; i++) {
             ch[i - 65] = (char) i;
             ch[i - 65 + 26] = (char) (i + 32);
         }
-        Character integer[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-        Character others[] = {'#','\\', '=', '_', '.', '*', '/', '+', '-', ' ', '(', ')'};
+        Character[] integer = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+        Character[] others = {'#','\\', '=', '_', '.', '*', '/', '+', '-', ' ', '(', ')'};
         input.addAll(Arrays.asList(ch));
         input.addAll(Arrays.asList(integer));
         input.addAll(Arrays.asList(others));

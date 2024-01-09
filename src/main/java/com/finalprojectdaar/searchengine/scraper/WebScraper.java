@@ -27,10 +27,10 @@ public class WebScraper {
     private static final Logger logger = LogManager.getLogger(WebScraper.class);
     static final String BASE_URL = "https://www.gutenberg.org";
     static final int FIRST_BOOK_ID = 2701;
-    static final int MAX_SIZE = 20;
+    static final int MAX_SIZE = 1600                                            ;
 
 
-    public static void main(String[] args) throws IOException {
+    public static void scrape() throws IOException {
         HashSet<Integer> scannedBooks = new HashSet<>();
         HashSet<Integer> allBooks = new HashSet<>();
         ArrayDeque<Integer> todoBooks = new ArrayDeque<>();
@@ -155,6 +155,22 @@ public class WebScraper {
             logger.error("Error while saving HashMap to file: " + json_path);
             logger.error(e.getMessage());
         }
+
+        json_path = "data/scrap-results/json/bookIdToName.json";
+        json_path =  System.getProperty("user.dir") + File.separator + json_path;
+        file = new File(json_path);
+        if(file.exists()){
+            renameFile(json_path);
+        }
+        try(FileWriter writer = new FileWriter(json_path)) {
+            // Convert HashMap to JSON and write to file
+            gson.toJson(bookIdToName, writer);
+            System.out.println("HashMap saved to file: " + json_path);
+        } catch (IOException e) {
+            logger.error("Error while saving HashMap to file: " + json_path);
+            logger.error(e.getMessage());
+        }
+
 
         logger.info("Generating dot file for graphviz...");
         String dot_path = "data/scrap-results/dot/similar-graph.dot";

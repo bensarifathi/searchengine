@@ -25,6 +25,5 @@ public class WhiteSpaceTokenizer implements Tokenizer{
     public Set<String> tokenizeToSet(String input) {
         return new HashSet<>(this.tokenizeToList(input));
     }
-
 }
 

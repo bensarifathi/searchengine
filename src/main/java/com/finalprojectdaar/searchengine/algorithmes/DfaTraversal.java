@@ -1,8 +1,5 @@
 package com.finalprojectdaar.searchengine.algorithmes;
-
 import java.util.Set;
-
-
 public class DfaTraversal {
     
     private final State q0;
