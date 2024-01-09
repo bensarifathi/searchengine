@@ -1,19 +1,17 @@
 package com.finalprojectdaar.searchengine.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class BookQueryDto {
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
 
     public void setRegex(boolean regex) {
         isRegex = regex;
     }
 
+    @Getter
+    @Setter
     private String pattern;
-
-    public String getPattern() {
-        return pattern;
-    }
 
     public boolean isRegex() {
         return isRegex;
