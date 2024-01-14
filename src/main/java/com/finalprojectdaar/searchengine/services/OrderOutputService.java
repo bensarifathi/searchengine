@@ -8,7 +8,13 @@ import java.util.ArrayList;
 
 @Service
 public class OrderOutputService {
-    public Book[] order(ArrayList<Integer> inputIds) {
-        return null;
+    public ArrayList<Book> order(ArrayList<Integer> inputIds) {
+        ArrayList<Book> books = new ArrayList<>();
+        for (Integer id: inputIds) {
+            Book book = new Book();
+            book.setId(id);
+            books.add(book);
+        }
+        return books;
     }
 }

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @RestController()
-@RequestMapping("/api/books/")
+@RequestMapping("/api/books")
 public class BookStoreController {
 
     private final FileLookupService fileLookupService;
@@ -25,9 +25,10 @@ public class BookStoreController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Book[]> fetchBooks(BookQueryDto bookQueryDto) throws IOException {
+    public ResponseEntity<ArrayList<Book>> fetchBooks(BookQueryDto bookQueryDto) throws IOException {
+        System.out.println("am hitted");
         ArrayList<Integer> results = fileLookupService.getCandidate(bookQueryDto.getPattern(), bookQueryDto.isRegex());
-        Book[] books = orderOutputService.order(results);
+        ArrayList<Book> books = orderOutputService.order(results);
         return ResponseEntity
                 .status(200)
                 .body(books);
