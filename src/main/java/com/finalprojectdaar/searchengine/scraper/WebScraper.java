@@ -177,6 +177,7 @@ public class WebScraper {
             book.put("title", bookTitle);
             book.put("author", author);
             book.put("id", String.valueOf(currentBookId) );
+            book.put("img", "/api/books/img/" + currentBookId);
             try (FileWriter writer = new FileWriter(json_path)) {
                 // Convert HashMap to JSON and write to file
                 gson.toJson(book, writer);
