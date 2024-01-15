@@ -26,11 +26,12 @@ public record Book(String id, String title, String author) {
         String content = sb.toString();        // read book json
         HashMap<String,String> bookFromJson = gson.fromJson(content, HashMap.class);
         return new Book(String.valueOf(id), (String) bookFromJson.get("title"), (String) bookFromJson.get("author"));
+
     }
 
     public static Book fromId(String id) {
         // read book json
         HashMap bookFromJson = gson.fromJson(BASE_LOCATION + id + ".json", HashMap.class);
-        return new Book(id, (String) bookFromJson.get("title"), (String) bookFromJson.get("author"));
+        return new Book(id, (String) bookFromJson.get("title"), (String) bookFromJson.get("author"), (String) bookFromJson.get("img"));
     }
 }

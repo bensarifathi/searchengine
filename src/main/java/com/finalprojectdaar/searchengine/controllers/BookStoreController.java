@@ -22,7 +22,7 @@ public class BookStoreController {
 
     private final FileLookupService fileLookupService;
     private final OrderOutputService orderOutputService;
-    private static final String IMAGE_DIRECTORY = "data/scrap-results/images/";
+    private static final String IMAGE_DIRECTORY = "data/scrap-results/img/";
 
     public BookStoreController(FileLookupService fileLookupService, OrderOutputService orderOutputService) {
         this.fileLookupService = fileLookupService;
@@ -42,28 +42,28 @@ public class BookStoreController {
     }
 
     @GetMapping("/img/{id}")
-    public ResponseEntity<Resource> serveImage(@PathVariable String id) {
+    public ResponseEntity<Resource> getImageById(@PathVariable String id) {
         try {
-            // Construct the path to the image based on the id parameter
-            Path imagePath = Paths.get(IMAGE_DIRECTORY).resolve(id + ".jpg");
+            // Construct the file path based on the id
+            Path imagePath = Paths.get(IMAGE_DIRECTORY).resolve(id + ".png"); // Change the extension based on your image format
 
             // Load the image as a resource
             Resource resource = new UrlResource(imagePath.toUri());
 
+
+            System.out.println(resource);
             // Check if the resource exists
             if (resource.exists() || resource.isReadable()) {
-                // Set the Content-Type header based on the image type
-                String contentType = "image/jpeg"; // You may need to adjust this based on your image types
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline;filename=" + resource.getFilename())
+                        .contentType(MediaType.IMAGE_JPEG) // Change the content type based on your image format
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (MalformedURLException | RuntimeException e) {
-            // Handle exceptions (e.g., file not found, malformed URL, etc.)
-            return ResponseEntity.notFound().build();
+            // Handle exceptions (e.g., file not found, etc.)
+            return ResponseEntity.status(500).build();
         }
     }
 }
