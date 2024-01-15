@@ -1,16 +1,23 @@
 package com.finalprojectdaar.searchengine.graphs;
 
+import org.javatuples.Pair;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class PageRank {
-    public static Map<String, Double> calculate(Map<String, String[]> graph, double dampingFactor) {
-        Map<String, Double> pageRank = new HashMap<>();
+    public static Set<Pair<String, Double>> calculate(Map<String, Map<String, Double>> graph, double dampingFactor) {
+        Map<String, Double> pageRankMap = new HashMap<>();
+        // Map<String, Map<String, Double>>
+        TreeSet<Pair<String, Double>> orderedClosenessCentrality = new TreeSet<>(new TupleComparator());
+
         for (String node : graph.keySet()) {
-            pageRank.put(node, 1.0);
+            pageRankMap.put(node, 1.0);
         }
 
-        // Number of iterations (adjust as needed)
+        // Number of iterations
         int iterations = 10;
 
         for (int i = 0; i < iterations; i++) {
@@ -22,9 +29,9 @@ public class PageRank {
 
                 // Iterate over incoming links to the node
                 for (String incomingLink : graph.keySet()) {
-                    if (containsLink(graph.get(incomingLink), node)) {
+                    if (graph.get(incomingLink).containsKey(node)) {
                         int outgoingLinksCount = graph.get(incomingLink).length;
-                        sum += pageRank.get(incomingLink) / outgoingLinksCount;
+                        sum += pageRankMap.get(incomingLink) / outgoingLinksCount;
                     }
                 }
 
@@ -34,18 +41,18 @@ public class PageRank {
             }
 
             // Update PageRank values for the next iteration
-            pageRank = newPageRank;
+            pageRankMap = newPageRank;
         }
 
-        return pageRank;
-    }
+        TreeSet<Pair<String, Double>> sortedPageRankSet =
+                new TreeSet<>(new TupleComparator()); // for descending order
 
-    private static boolean containsLink(String[] links, String target) {
-        for (String link : links) {
-            if (link.equals(target)) {
-                return true;
-            }
+        for (Map.Entry<String, Double> entry : pageRankMap.entrySet()) {
+            Pair<String, Double> pair = new Pair<>(entry.getKey(), entry.getValue());
+            sortedPageRankSet.add(pair);
         }
-        return false;
+
+
+        return sortedPageRankSet;
     }
 }

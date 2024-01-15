@@ -2,9 +2,6 @@ package com.finalprojectdaar.searchengine.scraper;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import me.tongfei.progressbar.DelegatingProgressBarConsumer;
-import me.tongfei.progressbar.ProgressBar;
-import me.tongfei.progressbar.ProgressBarBuilder;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

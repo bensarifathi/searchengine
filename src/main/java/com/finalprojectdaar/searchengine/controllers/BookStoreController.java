@@ -27,8 +27,10 @@ public class BookStoreController {
     @GetMapping("")
     public ResponseEntity<ArrayList<Book>> fetchBooks(BookQueryDto bookQueryDto) throws IOException {
         System.out.println("am hitted");
+        // TODO get this from request
+        OrderOutputService.OrderAlgorithm algorithm = OrderOutputService.OrderAlgorithm.PAGE_RANK;
         ArrayList<Integer> results = fileLookupService.getCandidate(bookQueryDto.getPattern(), bookQueryDto.isRegex());
-        ArrayList<Book> books = orderOutputService.order(results);
+        ArrayList<Book> books = orderOutputService.order(results, algorithm);
         return ResponseEntity
                 .status(200)
                 .body(books);

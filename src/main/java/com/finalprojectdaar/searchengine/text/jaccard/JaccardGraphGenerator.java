@@ -83,7 +83,7 @@ public class JaccardGraphGenerator {
         return calculateJackard(idToText);
     }
 
-    public Map<String, Map<String, Double>> initForBookList(List<Integer> bookIds) throws FileNotFoundException {
+    public Map<String, Map<String, Double>> initForBookList(List<Integer> bookIds) {
         HashMap<Integer, Set<String>> idToText = new HashMap<>();
 
         for (int bookId : bookIds) {

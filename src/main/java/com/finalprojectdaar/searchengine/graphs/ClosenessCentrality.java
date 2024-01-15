@@ -1,11 +1,16 @@
 package com.finalprojectdaar.searchengine.graphs;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.javatuples.Pair;
+import org.javatuples.Tuple;
+
+import java.util.*;
 
 public class ClosenessCentrality {
-    public static Map<String, Double> calculateClosenessCentrality(Map<String, Map<String, Double>> graph) {
-        Map<String, Double> closenessCentrality = new HashMap<>();
+    public static Set<Pair<String, Double>> calculateClosenessCentrality(Map<String, Map<String, Double>> graph) {
+        // use Set for default order
+        // data is tuple where (bookId, Rank)
+
+        TreeSet<Pair<String, Double>> orderedClosenessCentrality = new TreeSet<>(new TupleComparator());
 
         for (String node : graph.keySet()) {
             double sumDistances = 0.0;
@@ -23,12 +28,14 @@ public class ClosenessCentrality {
 
             if (reachableNodes > 0) {
                 double closeness = (reachableNodes - 1) / sumDistances;  // Subtract 1 to exclude the node itself
-                closenessCentrality.put(node, closeness);
+                Pair<String, Double> tuple = new Pair<>(node, closeness);
+                orderedClosenessCentrality.add(tuple);
             } else {
-                closenessCentrality.put(node, 0.0);  // Set closeness to 0 for isolated nodes
+                Pair<String, Double> tuple = new Pair<>(node, 0.0);
+                orderedClosenessCentrality.add(tuple);  // Set closeness to 0 for isolated nodes
             }
         }
 
-        return closenessCentrality;
+        return orderedClosenessCentrality;
     }
 }
