@@ -13,21 +13,60 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JaccardGraphGenerator {
     private static final Logger logger = LogManager.getLogger(WebScraper.class);
+    private final Simplifier removeNonWord = new RemoveNonWordSimplifier();
+    private final Simplifier removeLinkingWords = new RemoveLinkingWordSimplifier();
+    private final Simplifier lowerCase = new LowerCaseSimpliffier();
+    private final Tokenizer whiteSpaceTokenizer = new WhiteSpaceTokenizer();
 
-    public static void init() throws FileNotFoundException {
-        Simplifier removeNonWord = new RemoveNonWordSimplifier();
-        Simplifier removeLinkingWords = new RemoveLinkingWordSimplifier();
-        Simplifier lowerCase = new LowerCaseSimpliffier();
+    private Set<String> getTokenizedText(int bookId) {
+        String text_path = "data/scrap-results/texts/" + bookId + ".txt";
+        text_path = System.getProperty("user.dir") + File.separator + text_path;
+        File file = new File(text_path);
+        if (!file.exists()) {
+            logger.error("File " + text_path + " does not exist");
+            return null;
+        }
 
-        Tokenizer whiteSpaceTokenizer = new WhiteSpaceTokenizer();
+        String text = "";
+        try {
+            text = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(text_path)));
+        } catch (Exception e) {
+            logger.error("Error while reading file " + text_path);
+            return null;
+        }
 
+        text = removeNonWord.simplify(removeLinkingWords.simplify(lowerCase.simplify(text)));
+        return whiteSpaceTokenizer.tokenizeToSet(text);
+    }
+
+    public Map<String, Map<String, Double>> calculateJackard(HashMap<Integer, Set<String>> idToWords) {
+        Map<String, Map<String, Double>> jaccardGraph = new HashMap<>();
+
+        for (Map.Entry<Integer, Set<String>> entry1 : idToWords.entrySet()) {
+            int node1 = entry1.getKey();
+            Set<String> set1 = entry1.getValue();
+
+            for (Map.Entry<Integer, Set<String>> entry2 : idToWords.entrySet()) {
+                int node2 = entry2.getKey();
+                if (node1 != node2) { // Avoid comparing the same node
+                    Set<String> set2 = entry2.getValue();
+
+                    // Calculate Jaccard similarity
+                    double jaccardSimilarity = calculateJaccardSimilarity(set1, set2);
+
+                    // Add to the Jaccard graph
+                    addToJaccardGraph(jaccardGraph, String.valueOf(node1), String.valueOf(node2), jaccardSimilarity);
+                }
+            }
+        }
+        return jaccardGraph;
+    }
+
+    public Map<String, Map<String, Double>> initForAllNodes() throws FileNotFoundException {
         String json_path = "data/scrap-results/json/bookIdToName.json";
         json_path = System.getProperty("user.dir") + File.separator + json_path;
 
@@ -37,87 +76,25 @@ public class JaccardGraphGenerator {
 
         for (String bookIdString : bookIdToTitle.keySet()) {
             int bookId = Integer.parseInt(bookIdString);
-            String text_path = "data/scrap-results/texts/" + bookId + ".txt";
-            text_path = System.getProperty("user.dir") + File.separator + text_path;
-            File file = new File(text_path);
-            if (!file.exists()) {
-                logger.error("File " + text_path + " does not exist");
-                continue;
-            }
-            String text = "";
-            try {
-                text = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(text_path)));
-            } catch (Exception e) {
-                logger.error("Error while reading file " + text_path);
-                continue;
-            }
-
-            text = removeNonWord.simplify(removeLinkingWords.simplify(lowerCase.simplify(text)));
-            Set<String> words = whiteSpaceTokenizer.tokenizeToSet(text);
+            Set<String> words = getTokenizedText(bookId);
             idToText.put(bookId, words);
         }
 
-        Map<String, Map<String, Double>> jaccardGraph = new HashMap<>();
-
-        for (Map.Entry<Integer, Set<String>> entry1 : idToText.entrySet()) {
-            int node1 = entry1.getKey();
-            Set<String> set1 = entry1.getValue();
-
-            for (Map.Entry<Integer, Set<String>> entry2 : idToText.entrySet()) {
-                int node2 = entry2.getKey();
-                if (node1 != node2) { // Avoid comparing the same node
-                    Set<String> set2 = entry2.getValue();
-
-                    // Calculate Jaccard similarity
-                    double jaccardSimilarity = calculateJaccardSimilarity(set1, set2);
-
-                    // Add to the Jaccard graph
-                    addToJaccardGraph(jaccardGraph, String.valueOf(node1), String.valueOf(node2), jaccardSimilarity);
-                }
-            }
-        }
-
-        json_path = "data/scrap-results/json/jaccard-graph.json";
-        json_path = System.getProperty("user.dir") + File.separator + json_path;
-        File file = new File(json_path);
-        if (file.exists()) {
-            file.delete();
-        }
-        try (FileWriter writer = new FileWriter(json_path)) {
-            // Convert HashMap to JSON and write to file
-            gson.toJson(jaccardGraph, writer);
-            System.out.println("HashMap saved to file: " + json_path);
-        } catch (IOException e) {
-            logger.error("Error while saving HashMap to file: " + json_path);
-            logger.error(e.getMessage());
-        }
+        return calculateJackard(idToText);
     }
 
-    public static Map<String, Map<String, Double>> calculateJaccardGraph(HashMap<Integer, Set<String>> data) {
-        Map<String, Map<String, Double>> jaccardGraph = new HashMap<>();
+    public Map<String, Map<String, Double>> initForBookList(List<Integer> bookIds) throws FileNotFoundException {
+        HashMap<Integer, Set<String>> idToText = new HashMap<>();
 
-        for (Map.Entry<Integer, Set<String>> entry1 : data.entrySet()) {
-            int node1 = entry1.getKey();
-            Set<String> set1 = entry1.getValue();
-
-            for (Map.Entry<Integer, Set<String>> entry2 : data.entrySet()) {
-                int node2 = entry2.getKey();
-                if (node1 != node2) { // Avoid comparing the same node
-                    Set<String> set2 = entry2.getValue();
-
-                    // Calculate Jaccard similarity
-                    double jaccardSimilarity = calculateJaccardSimilarity(set1, set2);
-
-                    // Add to the Jaccard graph
-                    addToJaccardGraph(jaccardGraph, String.valueOf(node1), String.valueOf(node2), jaccardSimilarity);
-                }
-            }
+        for (int bookId : bookIds) {
+            Set<String> words = getTokenizedText(bookId);
+            idToText.put(bookId, words);
         }
 
-        return jaccardGraph;
+        return calculateJackard(idToText);
     }
 
-    public static double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
+    private static double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
         Set<String> intersection = new HashSet<>(set1);
         intersection.retainAll(set2);
 
@@ -127,16 +104,9 @@ public class JaccardGraphGenerator {
         return (double) intersection.size() / union.size();
     }
 
-    public static void addToJaccardGraph(Map<String, Map<String, Double>> jaccardGraph, String node1, String
+    private static void addToJaccardGraph(Map<String, Map<String, Double>> jaccardGraph, String node1, String
             node2, double similarity) {
         jaccardGraph.computeIfAbsent(node1, k -> new HashMap<>()).put(node2, similarity);
         jaccardGraph.computeIfAbsent(node2, k -> new HashMap<>()).put(node1, similarity);
-    }
-
-    public static HashMap<String, Map<String, Double>> getCachedGraph() throws FileNotFoundException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json_path = "data/scrap-results/json/jaccard-graph.json";
-        json_path = System.getProperty("user.dir") + File.separator + json_path;
-        return gson.fromJson(new FileReader(json_path), HashMap.class);
     }
 }

@@ -8,6 +8,7 @@ import java.io.IOException;
 public class AppInitialiser {
     public static void main(String[] args) throws IOException, InterruptedException {
         WebScraper.scrape();
-        JaccardGraphGenerator.init();
+        JaccardGraphGenerator jaccardGraphGenerator = new JaccardGraphGenerator();
+        jaccardGraphGenerator.initForAllNodes();
     }
 }
