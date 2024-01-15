@@ -15,23 +15,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.lang.annotation.ElementType;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.stream.Stream;
 
 public class WebScraper {
     private static final Logger logger = LogManager.getLogger(WebScraper.class);
     static final String BASE_URL = "https://www.gutenberg.org";
     static final int FIRST_BOOK_ID = 2701;
-    static final int MAX_SIZE = 1600;
+    static final int MAX_SIZE = 10;
 
 
     public static void scrape() throws IOException, InterruptedException {
@@ -50,28 +44,33 @@ public class WebScraper {
             int currentBookId = todoBooks.pop();
             allBooks.add(currentBookId);
             if (scannedBooks.contains(currentBookId)) {
-                // logger.info("Book with id " + currentBookId + " already scanned, skipping");
+                logger.info("Book with id " + currentBookId + " already scanned, skipping");
                 continue;
             }
             String bookUrl = BASE_URL + "/ebooks/" + currentBookId;
             Document doc = Jsoup.connect(bookUrl).get();
             Element titleElement = doc.selectFirst("#content > h1:nth-child(2)");
             if (titleElement == null) {
-                // logger.info("Title for book with id " + currentBookId + " not found, skipping");
+                logger.info("Title for book with id " + currentBookId + " not found, skipping");
                 // print the doc html
                 continue;
             }
-            // logger.info("===========================================");
-            // logger.info("Scraping book " + currentBookId);
+            logger.info("===========================================");
+            logger.info("Scraping book " + currentBookId);
             printProgressBar(scannedBooks.size(), MAX_SIZE);
             String bookTitle = titleElement.text();
-            bookIdToName.put(currentBookId, bookTitle);
             // get category
             Element categoryElement = doc.selectFirst("td[property=\"dcterms:type\"][datatype=\"dcterms:DCMIType\"]");
-            assert categoryElement != null;
-            if (categoryElement.text().equals("Sound")) {
+            Element isDownloadableElement = doc.selectFirst("td[property=\"dcterms:format\"][content=\"text/plain; charset=us-ascii\"][datatype=\"dcterms:IMT\"].unpadded.icon_save > a.link[title=\"Download\"]\n");
+
+            if (categoryElement != null &&  categoryElement.text().equals("Sound")) {
                 continue;
             }
+
+            if(isDownloadableElement == null){
+                continue;
+            }
+            bookIdToName.put(currentBookId, bookTitle);
             scannedBooks.add(currentBookId);
             doc = Jsoup.connect(bookUrl + "/also/").get();
             Elements similarBooksLiElement = doc.select("li.booklink");
@@ -96,13 +95,13 @@ public class WebScraper {
                 bookIdToSimilarIds.get(currentBookId).add(similarBookId);
             }
 
-            // logger.info("Getting book text...");
+            logger.info("Getting book text...");
 
             String textFilPath = "data/scrap-results/texts/" + currentBookId + ".txt";
             textFilPath = System.getProperty("user.dir") + File.separator + textFilPath;
             File file = new File(textFilPath);
             if (file.exists()) {
-                // logger.info("Book text already exists, skipping");
+                logger.info("Book text already exists, skipping");
                 continue;
             }
 
@@ -134,15 +133,15 @@ public class WebScraper {
                 logger.error("Couldn't download the text for book " + currentBookId + ". Probably audio book :) ");
             }
 
-            // logger.info("Scanning book with id " + currentBookId + " finished");
-            // logger.info("===========================================");
+            logger.info("Scanning book with id " + currentBookId + " finished");
+             logger.info("===========================================");
         }
 
-        // logger.info("*****************************************************");
-        // logger.info("Scraping finished");
+        logger.info("*****************************************************");
+        logger.info("Scraping finished");
 
-        // logger.info("*****************************************************");
-        // logger.info("Saving generated graph results to json files...");
+        logger.info("*****************************************************");
+        logger.info("Saving generated graph results to json files...");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json_path = "data/scrap-results/json/similar-graph.json";
         json_path = System.getProperty("user.dir") + File.separator + json_path;
@@ -176,7 +175,7 @@ public class WebScraper {
         }
 
 
-        // logger.info("Generating dot file for graphviz...");
+        logger.info("Generating dot file for graphviz...");
         String dot_path = "data/scrap-results/dot/similar-graph.dot";
         dot_path = System.getProperty("user.dir") + File.separator + dot_path;
         file = new File(dot_path);
@@ -199,18 +198,18 @@ public class WebScraper {
 
         dotFileContent.append("}");
 
-        // logger.info("Saving dot file...");
+        logger.info("Saving dot file...");
 
         try (FileWriter writer = new FileWriter(dot_path)) {
             writer.write(dotFileContent.toString());
-            // logger.info("Dot file saved to file: " + dot_path);
+            logger.info("Dot file saved to file: " + dot_path);
         } catch (IOException e) {
             logger.error("Error while saving dot file to file: " + dot_path);
             logger.error(e.getMessage());
         }
 
-        // logger.info("*****************************************************");
-        // logger.info("done.");
+        logger.info("*****************************************************");
+        logger.info("done.");
     }
 
     static void renameFile(String filePath) {
