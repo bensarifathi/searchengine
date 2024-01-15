@@ -31,7 +31,7 @@ public class JaccardGraphGenerator {
             return null;
         }
 
-        String text = "";
+        String text ;
         try {
             text = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(text_path)));
         } catch (Exception e) {

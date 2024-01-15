@@ -18,11 +18,11 @@ public class FileLookupService {
     }
 
     private ArrayList<Integer> getBookIds() {
-        return null;
+        return new ArrayList<>();
     }
 
     public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException {
-        var ids = getBookIds();
+        ArrayList<Integer> ids = getBookIds();
         ArrayList<Integer> matchIds = new ArrayList<>();
         for (Integer id: ids) {
             boolean isMatch = findMatch(pattern, isRegex, id);
