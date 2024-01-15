@@ -12,6 +12,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.Date;
@@ -60,11 +62,11 @@ public class WebScraper {
             Element categoryElement = doc.selectFirst("td[property=\"dcterms:type\"][datatype=\"dcterms:DCMIType\"]");
             Element isDownloadableElement = doc.selectFirst("td[property=\"dcterms:format\"][content=\"text/plain; charset=us-ascii\"][datatype=\"dcterms:IMT\"].unpadded.icon_save > a.link[title=\"Download\"]\n");
 
-            if (categoryElement != null &&  categoryElement.text().equals("Sound")) {
+            if (categoryElement != null && categoryElement.text().equals("Sound")) {
                 continue;
             }
 
-            if(isDownloadableElement == null){
+            if (isDownloadableElement == null) {
                 continue;
             }
             bookIdToName.put(currentBookId, bookTitle);
@@ -97,41 +99,69 @@ public class WebScraper {
             String textFilPath = "data/scrap-results/texts/" + currentBookId + ".txt";
             textFilPath = System.getProperty("user.dir") + File.separator + textFilPath;
             File file = new File(textFilPath);
-            if (file.exists()) {
-                logger.info("Book text already exists, skipping");
-                continue;
-            }
-
-            String downloadUrl = bookUrl + ".txt.utf-8";
-            Connection.Response response = null;
-            int retryCounter = 0;
-            while (retryCounter <= 3) {
-                try {
-                    response = Jsoup.connect(downloadUrl).followRedirects(true).execute();
-                    break;
-                } catch (IOException e) {
-                    logger.error("Error while downloading book text for book with id " + currentBookId);
-                    retryCounter++;
-                    downloadUrl = downloadUrl.replace("https://www.gutenberg.org/", "https://gutenberg.pglaf.org/");
-                    if (retryCounter < 3) {
-                        logger.error("Retrying (" + retryCounter + "/3)...");
+            if (!file.exists()) {
+                String downloadUrl = bookUrl + ".txt.utf-8";
+                Connection.Response response = null;
+                int retryCounter = 0;
+                while (retryCounter <= 3) {
+                    try {
+                        response = Jsoup.connect(downloadUrl).followRedirects(true).execute();
+                        break;
+                    } catch (IOException e) {
+                        logger.error("Error while downloading book text for book with id " + currentBookId);
+                        retryCounter++;
+                        downloadUrl = downloadUrl.replace("https://www.gutenberg.org/", "https://gutenberg.pglaf.org/");
+                        if (retryCounter < 3) {
+                            logger.error("Retrying (" + retryCounter + "/3)...");
+                        }
                     }
                 }
-            }
 
-            if (response != null) {
-                try (FileOutputStream out = (new FileOutputStream(new File(textFilPath)))) {
-                    out.write(response.bodyAsBytes());
-                } catch (IOException e) {
-                    logger.error("Error while saving book text to file: " + textFilPath);
-                    logger.error(e.getMessage());
+                if (response != null) {
+                    try (FileOutputStream out = (new FileOutputStream(new File(textFilPath)))) {
+                        out.write(response.bodyAsBytes());
+                    } catch (IOException e) {
+                        logger.error("Error while saving book text to file: " + textFilPath);
+                        logger.error(e.getMessage());
+                    }
+                } else {
+                    logger.error("Couldn't download the text for book " + currentBookId + ". Probably audio book :) ");
                 }
             } else {
-                logger.error("Couldn't download the text for book " + currentBookId + ". Probably audio book :) ");
+                logger.info("Book text already exists, skipping");
             }
 
+
+            logger.info("Getting book image...");
+            String template = "https://www.gutenberg.org/cache/epub/%d/pg%d.cover.medium.jpg";
+            String imageUrl = String.format(template, currentBookId, currentBookId);
+
+            String imageFilPath = "data/scrap-results/img/" + currentBookId + ".png";
+            imageFilPath = System.getProperty("user.dir") + File.separator + imageFilPath;
+            file = new File(imageFilPath);
+            Document document = null;
+
+            if (!file.exists()) {
+                int retryCounter = 0;
+                while (retryCounter <= 3) {
+                    try {
+                        downloadImage(imageUrl, imageFilPath);
+                        break;
+                    } catch (IOException e) {
+                        logger.error("Error while downloading book image for book with id " + currentBookId);
+                        retryCounter++;
+                        if (retryCounter < 3) {
+                            logger.error("Retrying (" + retryCounter + "/3)...");
+                        }
+                    }
+                }
+            } else {
+                logger.info("Book text already exists, skipping");
+            }
+
+
             logger.info("Scanning book with id " + currentBookId + " finished");
-             logger.info("===========================================");
+            logger.info("===========================================");
         }
 
         logger.info("*****************************************************");
@@ -262,5 +292,20 @@ public class WebScraper {
         // Flush the output to ensure immediate display
         System.out.flush();
         System.out.println();
+    }
+
+    private static void downloadImage(String imageUrl, String destinationPath) throws IOException {
+        URL url = new URL(imageUrl);
+        URLConnection urlConnection = url.openConnection();
+
+        try (BufferedInputStream in = new BufferedInputStream(urlConnection.getInputStream());
+             FileOutputStream out = new FileOutputStream(destinationPath)) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer, 0, 1024)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
     }
 }

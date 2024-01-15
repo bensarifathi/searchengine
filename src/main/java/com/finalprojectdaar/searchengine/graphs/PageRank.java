@@ -30,7 +30,7 @@ public class PageRank {
                 // Iterate over incoming links to the node
                 for (String incomingLink : graph.keySet()) {
                     if (graph.get(incomingLink).containsKey(node)) {
-                        int outgoingLinksCount = graph.get(incomingLink).length;
+                        int outgoingLinksCount = graph.get(incomingLink).size();
                         sum += pageRankMap.get(incomingLink) / outgoingLinksCount;
                     }
                 }
