@@ -17,10 +17,10 @@ import java.util.*;
 
 public class JaccardGraphGenerator {
     private static final Logger logger = LogManager.getLogger(WebScraper.class);
-    private final Simplifier removeNonWord = new RemoveNonWordSimplifier();
-    private final Simplifier removeLinkingWords = new RemoveLinkingWordSimplifier();
-    private final Simplifier lowerCase = new LowerCaseSimpliffier();
-    private final Tokenizer whiteSpaceTokenizer = new WhiteSpaceTokenizer();
+    protected final Simplifier removeNonWord = new RemoveNonWordSimplifier();
+    protected final Simplifier removeLinkingWords = new RemoveLinkingWordSimplifier();
+    protected final Simplifier lowerCase = new LowerCaseSimpliffier();
+    protected final Tokenizer whiteSpaceTokenizer = new WhiteSpaceTokenizer();
 
     private Set<String> getTokenizedText(int bookId) {
         String text_path = "data/scrap-results/texts/" + bookId + ".txt";
@@ -56,7 +56,7 @@ public class JaccardGraphGenerator {
                     Set<String> set2 = entry2.getValue();
 
                     // Calculate Jaccard similarity
-                    double jaccardSimilarity = calculateJaccardSimilarity(set1, set2);
+                    double jaccardSimilarity = calculateJaccardDistance(set1, set2);
 
                     // Add to the Jaccard graph
                     addToJaccardGraph(jaccardGraph, String.valueOf(node1), String.valueOf(node2), jaccardSimilarity);
@@ -94,7 +94,7 @@ public class JaccardGraphGenerator {
         return calculateJackard(idToText);
     }
 
-    private static double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
+    private double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
         Set<String> intersection = new HashSet<>(set1);
         intersection.retainAll(set2);
 
@@ -104,7 +104,13 @@ public class JaccardGraphGenerator {
         return (double) intersection.size() / union.size();
     }
 
-    private static void addToJaccardGraph(Map<String, Map<String, Double>> jaccardGraph, String node1, String
+    private double calculateJaccardDistance(Set<String> set1, Set<String> set2){
+        return 1.0 - calculateJaccardSimilarity(set1, set2);
+    }
+
+
+
+    static void addToJaccardGraph(Map<String, Map<String, Double>> jaccardGraph, String node1, String
             node2, double similarity) {
         jaccardGraph.computeIfAbsent(node1, k -> new HashMap<>()).put(node2, similarity);
         jaccardGraph.computeIfAbsent(node2, k -> new HashMap<>()).put(node1, similarity);
