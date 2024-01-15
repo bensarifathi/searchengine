@@ -28,6 +28,8 @@ public class WebScraper {
 
 
     public static void scrape() throws IOException, InterruptedException {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
         HashSet<Integer> scannedBooks = new HashSet<>();
         HashSet<Integer> allBooks = new HashSet<>();
         ArrayDeque<Integer> todoBooks = new ArrayDeque<>();
@@ -61,13 +63,17 @@ public class WebScraper {
             // get category
             Element categoryElement = doc.selectFirst("td[property=\"dcterms:type\"][datatype=\"dcterms:DCMIType\"]");
             Element isDownloadableElement = doc.selectFirst("td[property=\"dcterms:format\"][content=\"text/plain; charset=us-ascii\"][datatype=\"dcterms:IMT\"].unpadded.icon_save > a.link[title=\"Download\"]\n");
-
+            Element authorElement = doc.selectFirst("a[rel=\"marcrel:aut\"][typeof=\"pgterms:agent\"]");
             if (categoryElement != null && categoryElement.text().equals("Sound")) {
                 continue;
             }
 
             if (isDownloadableElement == null) {
                 continue;
+            }
+            String author = "" ;
+            if (authorElement != null) {
+                author = authorElement.text();
             }
             bookIdToName.put(currentBookId, bookTitle);
             scannedBooks.add(currentBookId);
@@ -161,6 +167,24 @@ public class WebScraper {
 
 
             logger.info("Scanning book with id " + currentBookId + " finished");
+            logger.info("Saving book JSON");
+            String json_path = "data/scrap-results/json/books/" + currentBookId + ".json";
+            File jsonFile = new File(json_path);
+            if (jsonFile.exists()) {
+                jsonFile.delete();
+            }
+            HashMap<String,String> book = new HashMap<>();
+            book.put("title", bookTitle);
+            book.put("author", author);
+            book.put("id", String.valueOf(currentBookId) );
+            try (FileWriter writer = new FileWriter(json_path)) {
+                // Convert HashMap to JSON and write to file
+                gson.toJson(book, writer);
+                System.out.println("book json saved to file: " + json_path);
+            } catch (IOException e) {
+                logger.error("Error while saving book json to file: " + json_path);
+                logger.error(e.getMessage());
+            }
             logger.info("===========================================");
         }
 
@@ -169,7 +193,6 @@ public class WebScraper {
 
         logger.info("*****************************************************");
         logger.info("Saving generated graph results to json files...");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json_path = "data/scrap-results/json/similar-graph.json";
         json_path = System.getProperty("user.dir") + File.separator + json_path;
         File file = new File(json_path);
