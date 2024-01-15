@@ -57,7 +57,7 @@ public class WebScraper {
             }
             logger.info("===========================================");
             logger.info("Scraping book " + currentBookId);
-            printProgressBar(scannedBooks.size(), MAX_SIZE);
+            printProgressBar(scannedBooks.size(), allBooks.size());
             String bookTitle = titleElement.text();
             // get category
             Element categoryElement = doc.selectFirst("td[property=\"dcterms:type\"][datatype=\"dcterms:DCMIType\"]");
@@ -264,10 +264,6 @@ public class WebScraper {
 
         // Flush the output to ensure immediate display
         System.out.flush();
-
-        // If the process is complete, print a newline
-        if (current == max) {
-            System.out.println();
-        }
+        System.out.println();
     }
 }
