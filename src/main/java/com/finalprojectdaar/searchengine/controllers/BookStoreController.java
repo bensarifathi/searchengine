@@ -1,6 +1,5 @@
 package com.finalprojectdaar.searchengine.controllers;
 
-import com.finalprojectdaar.searchengine.dto.BookQueryDto;
 import com.finalprojectdaar.searchengine.models.Book;
 import com.finalprojectdaar.searchengine.services.FileLookupService;
 import com.finalprojectdaar.searchengine.services.OrderOutputService;
@@ -9,10 +8,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -34,12 +30,12 @@ public class BookStoreController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ArrayList<Book>> fetchBooks(BookQueryDto bookQueryDto) throws IOException {
-        System.out.println("am hitted");
+    public ResponseEntity<ArrayList<Book>> fetchBooks(@RequestParam String pattern, @RequestParam boolean isRegex) throws IOException {
         // TODO get this from request
-        OrderOutputService.OrderAlgorithm algorithm = OrderOutputService.OrderAlgorithm.PAGE_RANK;
-        ArrayList<Integer> results = fileLookupService.getCandidate(bookQueryDto.getPattern(), bookQueryDto.isRegex());
-        ArrayList<Book> books = orderOutputService.order(results, algorithm);
+        // OrderOutputService.OrderAlgorithm algorithm = OrderOutputService.OrderAlgorithm.PAGE_RANK;
+        System.out.println("the dto is " + pattern + " " + isRegex);
+        ArrayList<Integer> results = fileLookupService.getCandidate(pattern, isRegex);
+        ArrayList<Book> books = orderOutputService.order(results, OrderOutputService.OrderAlgorithm.CENTRALITY);
         return ResponseEntity
                 .status(200)
                 .body(books);

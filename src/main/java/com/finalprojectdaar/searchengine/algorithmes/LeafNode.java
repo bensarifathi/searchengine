@@ -1,14 +1,11 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 
-@Setter
-@Getter
+
 public class LeafNode extends Node {
     
     private int num;
@@ -24,4 +21,19 @@ public class LeafNode extends Node {
         followPos.add(number);
     }
 
+    public int getNum() {
+        return num;
+    }
+
+    public void setNum(int num) {
+        this.num = num;
+    }
+
+    public Set<Integer> getFollowPos() {
+        return followPos;
+    }
+
+    public void setFollowPos(Set<Integer> followPos) {
+        this.followPos = followPos;
+    }
 }

@@ -3,6 +3,7 @@ package com.finalprojectdaar.searchengine.algorithmes;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,7 +23,7 @@ public class RegexToDfa {
 
     private static HashMap<Integer, String> symbNum;
 
-    public boolean findMatch(String regex, Integer textID) throws IOException {
+    public Integer findMatch(String regex, Integer textID) throws IOException {
         DStates = new HashSet<>();
         input = new HashSet<>();
         getSymbols(regex);
@@ -83,7 +84,7 @@ public class RegexToDfa {
             if (s.getIsMarked()) {
                 continue;
             }
-            s.setIsMarked(true); //mark the state
+            s.setMarked(true); //mark the state
             Set<Integer> name = s.getName();
             for (String a : input) {
                 Set<Integer> U = new HashSet<>();
@@ -117,19 +118,13 @@ public class RegexToDfa {
         return q0;
     }
 
-    private static boolean lookupForMatch(State q0, Integer textID) throws IOException {
+    private static Integer lookupForMatch(State q0, Integer textID) throws IOException {
         DfaTraversal dfat = new DfaTraversal(q0, input);
-        BufferedReader buffer = new BufferedReader(
-                new FileReader("/Users/macos/Desktop/Daar-projet-1/src/main/resources/"
-                        + textID
-                        + ".txt"
-                )
-        );
+        String filePath = System.getProperty("user.dir") + File.separator + "data/scrap-results/texts/" + textID + ".txt";
+        BufferedReader buffer = new BufferedReader(new FileReader(filePath));
         String line;
-        int lineNumber = 0;
-        boolean output = false;
+        int hitRate = 0;
         while ((line = buffer.readLine()) != null) {
-            lineNumber++;
             dfat.resetState();
             boolean acc;
             for (int i = 0; i < line.length(); i++) {
@@ -137,7 +132,7 @@ public class RegexToDfa {
                     if (dfat.setCharacter(line.charAt(j))) {
                         acc = dfat.traverse();
                         if (acc) {
-                            output = true;
+                            hitRate ++;
                             break;
                         }
                     } else
@@ -149,6 +144,6 @@ public class RegexToDfa {
             }
         }
         buffer.close();
-        return output;
+        return hitRate;
     }
 }

@@ -10,12 +10,10 @@ import java.util.Set;
 
 public class State {
 
-    @Getter
     private Set<Integer> name;
     private final HashMap<String, State> move;
     
     private boolean IsAcceptable;
-    @Setter
     private boolean IsMarked;
     
     public State(int ID){
@@ -55,5 +53,32 @@ public class State {
     public HashMap<String, State> getAllMoves(){
         return move;
     }
-    
+
+    public Set<Integer> getName() {
+        return name;
+    }
+
+    public void setName(Set<Integer> name) {
+        this.name = name;
+    }
+
+    public HashMap<String, State> getMove() {
+        return move;
+    }
+
+    public boolean isAcceptable() {
+        return IsAcceptable;
+    }
+
+    public void setAcceptable(boolean acceptable) {
+        IsAcceptable = acceptable;
+    }
+
+    public boolean isMarked() {
+        return IsMarked;
+    }
+
+    public void setMarked(boolean marked) {
+        IsMarked = marked;
+    }
 }

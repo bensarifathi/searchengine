@@ -67,11 +67,11 @@ public class JaccardGraphGenerator {
     }
 
     public Map<String, Map<String, Double>> initForAllNodes() throws FileNotFoundException {
-        String json_path = "data/scrap-results/json/bookIdToName.json";
-        json_path = System.getProperty("user.dir") + File.separator + json_path;
+        String jsonPath = "data/scrap-results/json/bookIdToName.json";
+        jsonPath = System.getProperty("user.dir") + File.separator + jsonPath;
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        HashMap<String, String> bookIdToTitle = gson.fromJson(new FileReader(json_path), HashMap.class);
+        HashMap<String, String> bookIdToTitle = gson.fromJson(new FileReader(jsonPath), HashMap.class);
         HashMap<Integer, Set<String>> idToText = new HashMap<>();
 
         for (String bookIdString : bookIdToTitle.keySet()) {

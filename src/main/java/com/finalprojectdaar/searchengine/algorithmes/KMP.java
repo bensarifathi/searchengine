@@ -3,6 +3,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -39,14 +40,11 @@ public class KMP {
         }
     }
 
-    public boolean findMatch(Integer textID) throws IOException {
-        BufferedReader buffer = new BufferedReader(
-                new FileReader("/Users/macos/Desktop/Daar-projet-1/src/main/resources/"
-                        + textID
-                        + ".txt"
-                )
-        );
+    public Integer findMatch(Integer textID) throws IOException {
+        String filePath = System.getProperty("user.dir") + File.separator + "data/scrap-results/texts/" + textID + ".txt";
+        BufferedReader buffer = new BufferedReader(new FileReader(filePath));
         String text;
+        int hitRate = 0;
         while ((text = buffer.readLine()) != null) {
             int textLen = text.length();
             int patLen = pattern.length();
@@ -59,8 +57,8 @@ public class KMP {
                     j++;
                 }
                 if (j == patLen) {
-                    return true;
-                    // j = lspArray[j-1];
+                    hitRate ++;
+                    j = lspArray[j-1];
                 } else if (i < textLen && pattern.charAt(j) != text.charAt(i)) {
                     if (j != 0)
                         j = lspArray[j-1];
@@ -69,6 +67,6 @@ public class KMP {
                 }
             }
         }
-    return false;
+    return hitRate;
     }
 }

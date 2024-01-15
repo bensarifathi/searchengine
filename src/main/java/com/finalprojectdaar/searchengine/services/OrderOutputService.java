@@ -8,6 +8,7 @@ import org.javatuples.Pair;
 import org.springframework.stereotype.Service;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +34,13 @@ public class OrderOutputService {
 
         ArrayList<Book> books = new ArrayList<>();
         for (Integer id : ordered.stream().map(Pair::getValue0).map(Integer::parseInt).toList()) {
-            Book book = Book.fromId(id);
-            books.add(book);
+            try {
+                Book book = Book.fromId(id);
+                books.add(book);
+
+            } catch (IOException e) {
+                continue;
+            }
         }
         return books;
     }
