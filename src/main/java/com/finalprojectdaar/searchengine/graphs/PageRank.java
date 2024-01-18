@@ -2,18 +2,16 @@ package com.finalprojectdaar.searchengine.graphs;
 
 import org.javatuples.Pair;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class PageRank {
-    public static Set<Pair<String, Double>> calculate(Map<String, Map<String, Double>> graph, double dampingFactor) {
+    public static Set<Pair<String, Double>> calculate(Map<Pair<String, String>, Double> graph, double dampingFactor) {
         Map<String, Double> pageRankMap = new HashMap<>();
-        // Map<String, Map<String, Double>>
-        TreeSet<Pair<String, Double>> orderedClosenessCentrality = new TreeSet<>(new TupleComparator());
+        TreeSet<Pair<String, Double>> sortedPageRankSet = new TreeSet<>(new TupleComparator());
 
-        for (String node : graph.keySet()) {
+        Set<String> allNodes = getAllNodes(graph);
+
+        for (String node : allNodes) {
             pageRankMap.put(node, 1.0);
         }
 
@@ -24,13 +22,14 @@ public class PageRank {
             Map<String, Double> newPageRank = new HashMap<>();
 
             // Calculate PageRank for each node
-            for (String node : graph.keySet()) {
+            for (String node : allNodes) {
                 double sum = 0.0;
 
                 // Iterate over incoming links to the node
-                for (String incomingLink : graph.keySet()) {
-                    if (graph.get(incomingLink).containsKey(node)) {
-                        int outgoingLinksCount = graph.get(incomingLink).size();
+                for (String incomingLink : allNodes) {
+                    Pair<String, String> edge = new Pair<>(incomingLink, node);
+                    if (graph.containsKey(edge)) {
+                        int outgoingLinksCount = countOutgoingLinks(graph, incomingLink);
                         sum += pageRankMap.get(incomingLink) / outgoingLinksCount;
                     }
                 }
@@ -44,15 +43,26 @@ public class PageRank {
             pageRankMap = newPageRank;
         }
 
-        TreeSet<Pair<String, Double>> sortedPageRankSet =
-                new TreeSet<>(new TupleComparator()); // for descending order
-
         for (Map.Entry<String, Double> entry : pageRankMap.entrySet()) {
             Pair<String, Double> pair = new Pair<>(entry.getKey(), entry.getValue());
             sortedPageRankSet.add(pair);
         }
 
-
         return sortedPageRankSet;
+    }
+
+    private static Set<String> getAllNodes(Map<Pair<String, String>, Double> graph) {
+        Set<String> nodes = new HashSet<>();
+
+        for (Pair<String, String> edge : graph.keySet()) {
+            nodes.add(edge.getValue0());
+            nodes.add(edge.getValue1());
+        }
+
+        return nodes;
+    }
+
+    private static int countOutgoingLinks(Map<Pair<String, String>, Double> graph, String node) {
+        return (int) graph.keySet().stream().filter(edge -> edge.getValue0().equals(node)).count();
     }
 }

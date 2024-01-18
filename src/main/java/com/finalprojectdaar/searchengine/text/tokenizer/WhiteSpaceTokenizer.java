@@ -8,14 +8,14 @@ public class WhiteSpaceTokenizer implements Tokenizer{
 
     @Override
     public List<String> tokenizeToList(String input) {
-        if(input.isEmpty()){
-            return new ArrayList<>();
+        if (input.isEmpty()) {
+            return Collections.emptyList();
         }
 
         String[] tokens = pattern.split(input);
 
         if (tokens.length > 0 && tokens[0].isEmpty()) {
-            tokens = Arrays.copyOfRange(tokens, 1, tokens.length);
+            return Arrays.asList(Arrays.copyOfRange(tokens, 1, tokens.length));
         }
 
         return Arrays.asList(tokens);
@@ -23,7 +23,7 @@ public class WhiteSpaceTokenizer implements Tokenizer{
 
     @Override
     public Set<String> tokenizeToSet(String input) {
-        return new HashSet<>(this.tokenizeToList(input));
+        return input.isEmpty() ? Collections.emptySet() : new HashSet<>(tokenizeToList(input));
     }
 }
 

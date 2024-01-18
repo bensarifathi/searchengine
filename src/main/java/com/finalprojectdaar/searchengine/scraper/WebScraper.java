@@ -1,5 +1,11 @@
 package com.finalprojectdaar.searchengine.scraper;
 
+import com.finalprojectdaar.searchengine.text.simplifier.LowerCaseSimpliffier;
+import com.finalprojectdaar.searchengine.text.simplifier.RemoveLinkingWordSimplifier;
+import com.finalprojectdaar.searchengine.text.simplifier.RemoveNonWordSimplifier;
+import com.finalprojectdaar.searchengine.text.simplifier.Simplifier;
+import com.finalprojectdaar.searchengine.text.tokenizer.Tokenizer;
+import com.finalprojectdaar.searchengine.text.tokenizer.WhiteSpaceTokenizer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jsoup.Connection;
@@ -14,20 +20,23 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.ArrayDeque;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class WebScraper {
     private static final Logger logger = LogManager.getLogger(WebScraper.class);
+    protected static final Simplifier removeNonWord = new RemoveNonWordSimplifier();
+    protected static final Simplifier removeLinkingWords = new RemoveLinkingWordSimplifier();
+    protected static final Simplifier lowerCase = new LowerCaseSimpliffier();
+    protected static final Tokenizer whiteSpaceTokenizer = new WhiteSpaceTokenizer();
     static final String BASE_URL = "https://www.gutenberg.org";
     static final int FIRST_BOOK_ID = 2701;
-    static final int MAX_SIZE = 10;
 
 
-    public static void scrape() throws IOException, InterruptedException {
+    public static void scrape(int MAX_SIZE) throws IOException, InterruptedException {
+
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         HashSet<Integer> scannedBooks = new HashSet<>();
@@ -71,7 +80,7 @@ public class WebScraper {
             if (isDownloadableElement == null) {
                 continue;
             }
-            String author = "" ;
+            String author = "";
             if (authorElement != null) {
                 author = authorElement.text();
             }
@@ -105,6 +114,7 @@ public class WebScraper {
             String textFilPath = "data/scrap-results/texts/" + currentBookId + ".txt";
             textFilPath = System.getProperty("user.dir") + File.separator + textFilPath;
             File file = new File(textFilPath);
+            String wordText = "";
             if (!file.exists()) {
                 String downloadUrl = bookUrl + ".txt.utf-8";
                 Connection.Response response = null;
@@ -126,6 +136,7 @@ public class WebScraper {
                 if (response != null) {
                     try (FileOutputStream out = (new FileOutputStream(new File(textFilPath)))) {
                         out.write(response.bodyAsBytes());
+                        wordText = response.body();
                     } catch (IOException e) {
                         logger.error("Error while saving book text to file: " + textFilPath);
                         logger.error(e.getMessage());
@@ -135,6 +146,28 @@ public class WebScraper {
                 }
             } else {
                 logger.info("Book text already exists, skipping");
+                wordText = Files.readString(Path.of(file.getPath()));
+            }
+            logger.info("Tokenizing book text...");
+
+            String words = removeNonWord.simplify(removeLinkingWords.simplify(lowerCase.simplify(wordText)));
+            Set<String> tokens = whiteSpaceTokenizer.tokenizeToSet(words);
+
+            String tokensFilPath = "data/scrap-results/tokens/" + currentBookId + ".json";
+            tokensFilPath = System.getProperty("user.dir") + File.separator + tokensFilPath;
+            file = new File(tokensFilPath);
+
+            if (!file.exists()) {
+                try (FileWriter writer = new FileWriter(tokensFilPath)) {
+                    // Convert HashMap to JSON and write to file
+                    gson.toJson(tokens, writer);
+                    System.out.println("book tokens saved to file: " + tokensFilPath);
+                } catch (IOException e) {
+                    logger.error("Error while saving tokens json to file: " + tokensFilPath);
+                    logger.error(e.getMessage());
+                }
+            }else{
+                logger.info("Book tokens already exists, skipping");
             }
 
 
@@ -173,10 +206,10 @@ public class WebScraper {
             if (jsonFile.exists()) {
                 jsonFile.delete();
             }
-            HashMap<String,String> book = new HashMap<>();
+            HashMap<String, String> book = new HashMap<>();
             book.put("title", bookTitle);
             book.put("author", author);
-            book.put("id", String.valueOf(currentBookId) );
+            book.put("id", String.valueOf(currentBookId));
             book.put("img", "/api/books/img/" + currentBookId);
             try (FileWriter writer = new FileWriter(json_path)) {
                 // Convert HashMap to JSON and write to file

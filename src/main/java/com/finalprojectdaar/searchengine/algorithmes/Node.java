@@ -1,30 +1,22 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 
-@Getter
 public class Node {
 
-    @Setter
     private String symbol;
 
-    @Setter
     private Node parent;
 
-    @Setter
     private Node left;
 
-    @Setter
     private Node right;
     private final Set<Integer> firstPos;
     private final Set<Integer> lastPos;
 
-    @Setter
     private boolean nullable;
 
     public Node(String symbol) {
@@ -53,4 +45,51 @@ public class Node {
         lastPos.addAll(set);
     }
 
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
+    }
+
+    public Node getLeft() {
+        return left;
+    }
+
+    public void setLeft(Node left) {
+        this.left = left;
+    }
+
+    public Node getRight() {
+        return right;
+    }
+
+    public void setRight(Node right) {
+        this.right = right;
+    }
+
+    public Set<Integer> getFirstPos() {
+        return firstPos;
+    }
+
+    public Set<Integer> getLastPos() {
+        return lastPos;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+        this.nullable = nullable;
+    }
 }

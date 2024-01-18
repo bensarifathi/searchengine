@@ -1,11 +1,10 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
-import lombok.Getter;
+
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
 public class SyntaxTree {
 
     private final Node root; //the head of raw syntax tree
@@ -135,4 +134,11 @@ public class SyntaxTree {
         }
     }
 
+    public Node getRoot() {
+        return root;
+    }
+
+    public HashSet[] getFollowPos() {
+        return followPos;
+    }
 }

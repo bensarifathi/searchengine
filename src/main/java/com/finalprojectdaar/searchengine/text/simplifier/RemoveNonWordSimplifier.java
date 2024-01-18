@@ -1,5 +1,6 @@
 package com.finalprojectdaar.searchengine.text.simplifier;
 
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,13 +10,11 @@ public class RemoveNonWordSimplifier implements Simplifier{
         Pattern pattern = Pattern.compile("\\b\\w+\\b");
         Matcher matcher = pattern.matcher(text);
 
-        StringBuilder simplified = new StringBuilder();
-        // Use a StringBuilder to build the simplified string
+        StringJoiner simplified = new StringJoiner(" ");
         while (matcher.find()) {
-            simplified.append(matcher.group()).append(" ");
+            simplified.add(matcher.group());
         }
 
-        // Trim the trailing space and return the simplified string
-        return simplified.toString().trim();
+        return simplified.toString();
     }
 }

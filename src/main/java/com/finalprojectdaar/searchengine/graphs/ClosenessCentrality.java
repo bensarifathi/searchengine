@@ -6,19 +6,20 @@ import org.javatuples.Tuple;
 import java.util.*;
 
 public class ClosenessCentrality {
-    public static Set<Pair<String, Double>> calculateClosenessCentrality(Map<String, Map<String, Double>> graph) {
-        // use Set for default order
-        // data is tuple where (bookId, Rank)
-
+    public static Set<Pair<String, Double>> calculateClosenessCentrality( Map<Pair<String, String>, Double> graph) {
         TreeSet<Pair<String, Double>> orderedClosenessCentrality = new TreeSet<>(new TupleComparator());
 
-        for (String node : graph.keySet()) {
+        Set<String> allNodes = getAllNodes(graph);
+
+        for (String node : allNodes) {
             double sumDistances = 0.0;
             int reachableNodes = 0;
 
-            for (String otherNode : graph.keySet()) {
+            for (String otherNode : allNodes) {
                 if (!node.equals(otherNode)) {
-                    double distance = graph.get(node).getOrDefault(otherNode, Double.MAX_VALUE);
+                    Pair<String, String> edge = new Pair<>(node, otherNode);
+                    double distance = graph.getOrDefault(edge, Double.MAX_VALUE);
+
                     if (distance != Double.MAX_VALUE) {
                         sumDistances += distance;
                         reachableNodes++;
@@ -38,4 +39,16 @@ public class ClosenessCentrality {
 
         return orderedClosenessCentrality;
     }
+
+    private static Set<String> getAllNodes(Map<Pair<String, String>, Double> graph) {
+        Set<String> nodes = new HashSet<>();
+
+        for (Pair<String, String> edge : graph.keySet()) {
+            nodes.add(edge.getValue0());
+            nodes.add(edge.getValue1());
+        }
+
+        return nodes;
+    }
+
 }

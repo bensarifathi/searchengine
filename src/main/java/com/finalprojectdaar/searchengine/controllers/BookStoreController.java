@@ -1,27 +1,29 @@
 package com.finalprojectdaar.searchengine.controllers;
 
-import com.finalprojectdaar.searchengine.dto.BookQueryDto;
 import com.finalprojectdaar.searchengine.models.Book;
 import com.finalprojectdaar.searchengine.services.FileLookupService;
 import com.finalprojectdaar.searchengine.services.OrderOutputService;
+import com.finalprojectdaar.searchengine.text.jaccard.JaccardGraphGeneratorPair;
+import lombok.extern.java.Log;
+import org.javatuples.Pair;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @RestController()
 @RequestMapping("/api/books")
+@Log
 public class BookStoreController {
 
     private final FileLookupService fileLookupService;
@@ -34,12 +36,23 @@ public class BookStoreController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ArrayList<Book>> fetchBooks(BookQueryDto bookQueryDto) throws IOException {
-        System.out.println("am hitted");
-        // TODO get this from request
-        OrderOutputService.OrderAlgorithm algorithm = OrderOutputService.OrderAlgorithm.PAGE_RANK;
-        ArrayList<Integer> results = fileLookupService.getCandidate(bookQueryDto.getPattern(), bookQueryDto.isRegex());
-        ArrayList<Book> books = orderOutputService.order(results, algorithm);
+    public ResponseEntity<ArrayList<Book>> fetchBooks(@RequestParam String pattern, @RequestParam boolean isRegex) throws IOException, InterruptedException, ExecutionException {
+        long startTime = (System.currentTimeMillis());
+        ArrayList<Integer> results = fileLookupService.getCandidate(pattern, isRegex);
+        long executionTime = (System.currentTimeMillis() - startTime) / 1000;
+        log.info("Time taken for getCandidate is : " + executionTime + " seconds, found " + results.size());
+
+        startTime = (System.currentTimeMillis());
+        JaccardGraphGeneratorPair jaccardGraphGenerator = new JaccardGraphGeneratorPair();
+        Map<Pair<String, String>, Double> graph = jaccardGraphGenerator.initForBookList(results);
+        executionTime = (System.currentTimeMillis() - startTime) / 1000;
+        log.info("Time taken for jaccardGraphGenerator is : " + executionTime + " seconds");
+
+        startTime = (System.currentTimeMillis());
+        ArrayList<Book> books = orderOutputService.order(graph, OrderOutputService.OrderAlgorithm.CENTRALITY);
+        executionTime = (System.currentTimeMillis() - startTime) / 1000;
+        log.info("Time taken for jaccardGraphGenerator is : " + executionTime + " seconds");
+
         return ResponseEntity
                 .status(200)
                 .body(books);
