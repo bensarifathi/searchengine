@@ -2,6 +2,7 @@ package com.finalprojectdaar.searchengine.services;
 
 import com.finalprojectdaar.searchengine.algorithmes.KMP;
 import com.finalprojectdaar.searchengine.algorithmes.RegexToDfa;
+import com.finalprojectdaar.searchengine.algorithmes.State;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -52,29 +53,31 @@ public class FileLookupService {
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
         List<Callable<Boolean>> tasks = new ArrayList<>();
-
+        State q0 = regexAlgo.buildDfa(pattern + "#");
         for (Integer id : bookIds) {
-            tasks.add(() -> findMatch(pattern, isRegex, id));
+            tasks.add(() -> {
+                boolean resulat;
+                if (isRegex)
+                    resulat = findMatchRegex(q0, id);
+                else
+                    resulat = findMatchKMP(pattern, id);
+                return resulat;
+            });
         }
 
         List<Future<Boolean>> futures = executor.invokeAll(tasks);
 
-        for (int i = 0; i < futures.size(); i++) {
+        for (int i=0; i < futures.size(); i++) {
             Future<Boolean> future = futures.get(i);
-            boolean hitRate = future.get();
-            if (hitRate) {
+            boolean result = future.get();
+            if (result)
                 matchIds.add(bookIds.get(i));
-            }
         }
         return matchIds;
     }
 
-    private boolean findMatch(String pattern, boolean isRegex, Integer id) throws IOException {
-        return isRegex ? findMatchRegex(pattern, id) : findMatchKMP(pattern, id);
-    }
-
-    private boolean findMatchRegex(String pattern, Integer id) throws IOException {
-        return regexAlgo.findMatch(pattern + "#", id);
+    private boolean findMatchRegex(State q0, Integer id) throws IOException {
+        return regexAlgo.findMatch(q0, id);
     }
 
     private boolean findMatchKMP(String pattern, Integer id) throws IOException {

@@ -1,5 +1,7 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -23,15 +25,14 @@ public class RegexToDfa {
 
     private static HashMap<Integer, String> symbNum;
 
-    public boolean findMatch(String regex, Integer textID) throws IOException {
+    public State buildDfa(String regex) throws IOException {
         DStates = new HashSet<>();
         input = new HashSet<>();
         getSymbols(regex);
         SyntaxTree st = new SyntaxTree(regex);
         root = st.getRoot(); //root of the syntax tree
         followPos = st.getFollowPos(); //the followpos of the syntax tree
-        State q0 = createDFA();
-        return lookupForMatch(q0, textID);
+        return createDFA();
     }
 
     private static void getSymbols(String regex) {
@@ -118,12 +119,13 @@ public class RegexToDfa {
         return q0;
     }
 
-    private static boolean lookupForMatch(State q0, Integer textID) throws IOException {
+    public boolean findMatch(State q0, Integer textID) throws IOException {
         DfaTraversal dfat = new DfaTraversal(q0, input);
-        String filePath = System.getProperty("user.dir") + File.separator + "data/scrap-results/texts/" + textID + ".txt";
-        BufferedReader buffer = new BufferedReader(new FileReader(filePath));
+        String fileName = "books/" + textID + ".txt";
+        System.out.println(fileName);
+        Resource resource = new ClassPathResource(fileName);
+        BufferedReader buffer = new BufferedReader(new FileReader(resource.getFile()));
         String line;
-        int hitRate = 0;
         while ((line = buffer.readLine()) != null) {
             dfat.resetState();
             boolean acc;
@@ -133,8 +135,6 @@ public class RegexToDfa {
                         acc = dfat.traverse();
                         if (acc) {
                             return true;
-                            // hitRate ++;
-                            // break;
                         }
                     } else
                     {

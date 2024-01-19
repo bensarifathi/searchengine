@@ -19,7 +19,7 @@ public class SyntaxTree {
         for (int i = 0; i < numOfLeafs; i++) {
             followPos[i] = new HashSet<>();
         }
-        bt.printInorder(root);
+        // bt.printInorder(root);
         generateNullable(root);
         generateFirstposLastPos(root);
         generateFollowPos(root);
