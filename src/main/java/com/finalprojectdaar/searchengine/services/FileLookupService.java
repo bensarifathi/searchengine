@@ -2,6 +2,8 @@ package com.finalprojectdaar.searchengine.services;
 
 import com.finalprojectdaar.searchengine.algorithmes.KMP;
 import com.finalprojectdaar.searchengine.algorithmes.RegexToDfa;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -15,16 +17,17 @@ public class FileLookupService {
 
     private ArrayList<Integer> bookIds;
 
-    public FileLookupService(KMP kmpAlgo, RegexToDfa regexAlgo) {
+    public FileLookupService(KMP kmpAlgo, RegexToDfa regexAlgo) throws IOException {
         this.kmpAlgo = kmpAlgo;
         this.regexAlgo = regexAlgo;
         this.bookIds = loadBookIds();
     }
 
-    private ArrayList<Integer> loadBookIds() {
+    private ArrayList<Integer> loadBookIds() throws IOException {
         ArrayList<Integer> ids = new ArrayList<>();
-        String baseDirPath = System.getProperty("user.dir") + File.separator + "data/scrap-results/texts/";
-        File baseDir = new File(baseDirPath);
+        String baseDirPath = "books/";
+        Resource resource = new ClassPathResource(baseDirPath);
+        File baseDir = resource.getFile();
         File[] directoryListing = baseDir.listFiles();
         if(directoryListing == null) {
             return ids;
@@ -42,7 +45,6 @@ public class FileLookupService {
     }
 
     public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException {
-
         ArrayList<Integer> matchIds = new ArrayList<>();
         for (Integer id: bookIds) {
             Integer hitRate = findMatch(pattern, isRegex, id);

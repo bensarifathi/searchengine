@@ -1,7 +1,5 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.HashSet;
