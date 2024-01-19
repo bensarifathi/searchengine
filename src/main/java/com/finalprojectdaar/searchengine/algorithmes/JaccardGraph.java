@@ -89,23 +89,23 @@ public class JaccardGraph {
                 ));
 
         int numThreads = Runtime.getRuntime().availableProcessors(); // You can adjust this based on your needs
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         idToTokens.forEach((u, uSet) -> {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 idToTokens.forEach((v, vSet) -> {
                     if(u > v) return ;
-                    HashSet<String> tempV = new HashSet<>(vSet);
-                    HashSet<String> tempU = new HashSet<>(uSet);
 
-                    Set<String> uInterV = new HashSet<>(tempU);
+                    Set<String> uInterV = new HashSet<>(vSet);
+                    Set<String> uUnionV = new HashSet<>(vSet);
+
                     // keep only the common words
-                    uInterV.retainAll(tempV);
+                    uInterV.retainAll(uSet);
                     float intersection = uInterV.size();
                     // now get the union
-                    tempV.addAll(tempU);
-                    float union = tempV.size();
+                    uUnionV.addAll(uSet);
+                    float union = uUnionV.size();
                     float jaccardSimilarity = intersection / union;
                     // check if the similarity of u and v is > threshold and add a link between them
                     if (jaccardSimilarity >= threshold) {
