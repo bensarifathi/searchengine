@@ -23,7 +23,7 @@ public class RegexToDfa {
 
     private static HashMap<Integer, String> symbNum;
 
-    public Integer findMatch(String regex, Integer textID) throws IOException {
+    public boolean findMatch(String regex, Integer textID) throws IOException {
         DStates = new HashSet<>();
         input = new HashSet<>();
         getSymbols(regex);
@@ -118,7 +118,7 @@ public class RegexToDfa {
         return q0;
     }
 
-    private static Integer lookupForMatch(State q0, Integer textID) throws IOException {
+    private static boolean lookupForMatch(State q0, Integer textID) throws IOException {
         DfaTraversal dfat = new DfaTraversal(q0, input);
         String filePath = System.getProperty("user.dir") + File.separator + "data/scrap-results/texts/" + textID + ".txt";
         BufferedReader buffer = new BufferedReader(new FileReader(filePath));
@@ -132,8 +132,9 @@ public class RegexToDfa {
                     if (dfat.setCharacter(line.charAt(j))) {
                         acc = dfat.traverse();
                         if (acc) {
-                            hitRate ++;
-                            break;
+                            return true;
+                            // hitRate ++;
+                            // break;
                         }
                     } else
                     {
@@ -144,6 +145,6 @@ public class RegexToDfa {
             }
         }
         buffer.close();
-        return hitRate;
+        return false;
     }
 }

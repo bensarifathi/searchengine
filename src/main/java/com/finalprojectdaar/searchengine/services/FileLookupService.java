@@ -47,22 +47,22 @@ public class FileLookupService {
     public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException {
         ArrayList<Integer> matchIds = new ArrayList<>();
         for (Integer id: bookIds) {
-            Integer hitRate = findMatch(pattern, isRegex, id);
-            if(hitRate > 0)
+            boolean result = findMatch(pattern, isRegex, id);
+            if(result)
                 matchIds.add(id);
         }
         return matchIds;
     }
 
-    private Integer findMatch(String pattern, boolean isRegex, Integer id) throws IOException {
+    private boolean findMatch(String pattern, boolean isRegex, Integer id) throws IOException {
         return isRegex ? findMatchRegex(pattern, id) : findMatchKMP(pattern, id);
     }
 
-    private Integer findMatchRegex(String pattern, Integer id) throws IOException {
+    private boolean findMatchRegex(String pattern, Integer id) throws IOException {
         return regexAlgo.findMatch(pattern + "#", id);
     }
 
-    private Integer findMatchKMP(String pattern, Integer id) throws IOException {
+    private boolean findMatchKMP(String pattern, Integer id) throws IOException {
         kmpAlgo.init(pattern);
         return kmpAlgo.findMatch(id);
     }

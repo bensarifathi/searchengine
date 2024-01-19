@@ -43,7 +43,7 @@ public class KMP {
         }
     }
 
-    public Integer findMatch(Integer textID) throws IOException {
+    public boolean findMatch(Integer textID) throws IOException {
         String fileName = "books/" + textID + ".txt";
         Resource resource = new ClassPathResource(fileName);
         int hitRate = 0;
@@ -64,8 +64,11 @@ public class KMP {
                         j++;
                     }
                     if (j == patLen) {
+                        return true;
+                        /*
                         hitRate ++;
                         j = lspArray[j-1];
+                        */
                     } else if (i < textLen && pattern.charAt(j) != text.charAt(i)) {
                         if (j != 0)
                             j = lspArray[j-1];
@@ -75,6 +78,6 @@ public class KMP {
                 }
             }
         }
-        return hitRate;
+        return false;
     }
 }

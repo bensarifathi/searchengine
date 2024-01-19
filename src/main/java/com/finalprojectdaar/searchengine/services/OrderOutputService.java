@@ -37,6 +37,7 @@ public class OrderOutputService {
 
     private ArrayList<Integer> orderWithDegreeCentrality(ArrayList<Integer> nodes) throws IOException {
         Map<Integer, ArrayList<Integer>> graph = buildJaccardGraph(nodes);
+        System.out.println("graph built");
         DegreeCentrality dc = new DegreeCentrality(graph);
         return dc.getOrderedNodes();
     }
