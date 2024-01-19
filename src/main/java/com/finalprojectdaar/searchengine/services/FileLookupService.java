@@ -46,10 +46,25 @@ public class FileLookupService {
 
     public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException {
         ArrayList<Integer> matchIds = new ArrayList<>();
-        for (Integer id: bookIds) {
-            boolean result = findMatch(pattern, isRegex, id);
-            if(result)
-                matchIds.add(id);
+
+        ArrayList<Integer> matchIds = new ArrayList<>();
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+        List<Callable<Boolean>> tasks = new ArrayList<>();
+
+        for (Integer id : bookIds) {
+            tasks.add(() -> findMatch(pattern, isRegex, id));
+        }
+
+        List<Future<Integer>> futures = executor.invokeAll(tasks);
+
+        for (int i = 0; i < futures.size(); i++) {
+            Future<Boolean> future = futures.get(i);
+            boolean hitRate = future.get();
+            if (hitRate) {
+                matchIds.add(bookIds.get(i));
+            }
         }
         return matchIds;
     }
