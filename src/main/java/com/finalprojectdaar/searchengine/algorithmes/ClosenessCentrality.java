@@ -1,6 +1,10 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ClosenessCentrality {
     private Map<Integer, ArrayList<Integer>> graph;
@@ -20,7 +24,7 @@ public class ClosenessCentrality {
         while (!queue.isEmpty()) {
             Integer currentNode = queue.poll();
             visited.add(currentNode);
-            for (Integer neighbor: graph.get(currentNode)) {
+            for (Integer neighbor : graph.get(currentNode)) {
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     queue.add(neighbor);
@@ -35,7 +39,7 @@ public class ClosenessCentrality {
     private Float getNodeCentrality(Integer node) {
         Map<Integer, Integer> nodeDistances = bfs(node);
         float sum = 0F;
-        for (Integer d: nodeDistances.values())
+        for (Integer d : nodeDistances.values())
             sum += d;
         return sum > 0 ? 1 / sum : 0;
     }
@@ -61,11 +65,24 @@ public class ClosenessCentrality {
 
     public ArrayList<Integer> getOrderedNodes() {
         // key: node, value: closenessCentrality
-        Map<Integer, Float> nodesCentrality = new HashMap<>();
-        for (Integer node: graph.keySet()) {
-            float centrality = getNodeCentrality(node);
-            nodesCentrality.put(node, centrality);
+        Map<Integer, Float> nodesCentrality = new ConcurrentHashMap<>();
+
+        int numThreads = Runtime.getRuntime().availableProcessors(); // You can adjust this based on your needs
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (Integer node : graph.keySet()) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                float centrality = getNodeCentrality(node);
+                nodesCentrality.put(node, centrality);
+            }, executor);
+            futures.add(future);
         }
+
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allOf.join();
+        executor.shutdown();
+
         return sortNodesDescending(nodesCentrality);
     }
 }

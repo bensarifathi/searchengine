@@ -1,6 +1,10 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DegreeCentrality {
     private Map<Integer, ArrayList<Integer>> graph;
@@ -13,11 +17,24 @@ public class DegreeCentrality {
     public ArrayList<Integer> getOrderedNodes() {
         // O(n) where n = |V|
         // key: node, value: node degree
-        Map<Integer, Integer> nodesDegree = new HashMap<>();
-        for (Integer node: graph.keySet()) {
-            int degree = getNodeDegree(node);
-            nodesDegree.put(node, degree);
+        Map<Integer, Integer> nodesDegree = new ConcurrentHashMap<>();
+
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (Integer node : graph.keySet()) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                int degree = getNodeDegree(node);
+                nodesDegree.put(node, degree);
+            }, executor);
+            futures.add(future);
         }
+
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allOf.join();
+        executor.shutdown();
+
         return sortNodesDescending(nodesDegree);
     }
 

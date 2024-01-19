@@ -1,18 +1,19 @@
 package com.finalprojectdaar.searchengine.algorithmes;
 
 import org.springframework.core.io.ClassPathResource;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 
 public class JaccardGraph {
     private ArrayList<Integer> vertices;
 
-    private Map<Integer, ArrayList<Integer>> graph = new HashMap<>();
-    private Map<Integer, Set<String>> tokenizedVertices = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, ArrayList<Integer>> graph = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, Set<String>> tokenizedVertices = new ConcurrentHashMap<>();
     private final float threshold = 0.05F;
 
     public JaccardGraph(ArrayList<Integer> vertices) {
@@ -28,10 +29,10 @@ public class JaccardGraph {
         Set<String> tokenizedText = tokenizedVertices.get(id);
         if (tokenizedText == null) {
             // cache the vertex that is already tokenize
-            try{
+            try {
 
-            tokenizedText = tokenize(id);
-            tokenizedVertices.put(id, tokenizedText);
+                tokenizedText = tokenize(id);
+                tokenizedVertices.put(id, tokenizedText);
             } catch (IOException e) {
                 return new HashSet<>();
             }
@@ -41,7 +42,7 @@ public class JaccardGraph {
     }
 
     private void instantiateGraph() {
-        for(int v: vertices) {
+        for (int v : vertices) {
             graph.put(v, new ArrayList<>());
         }
     }
@@ -63,7 +64,7 @@ public class JaccardGraph {
         };
         Set<String> textSet = new HashSet<>();
         Set<String> keywordSet = new HashSet<>(Arrays.asList(linkingWords));
-        for (String word: text.split(" ")) {
+        for (String word : text.split(" ")) {
             // convert to lower case
             word = word.toLowerCase();
             // remove non alphanumeric value
@@ -76,33 +77,50 @@ public class JaccardGraph {
     }
 
     public JaccardGraph buildJaccardGraph() {
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
-        List<Integer> nodes = new ArrayList<>(graph.keySet());
-        forkJoinPool.submit(() ->
-                nodes.parallelStream().forEach(u -> graph.keySet().stream()
-                        .filter(v -> u < v)
-                        .forEach(v -> {
-                            Set<String> uSet = getTokenizedText(u);
-                            Set<String> vSet = getTokenizedText(v);
-                            Set<String> uInterV = new HashSet<>(uSet);
+        ConcurrentMap<Integer, Set<String>> idToTokens = graph.keySet().parallelStream()
+                .collect(Collectors.toConcurrentMap(
+                        Integer.class::cast,
+                        this::getTokenizedText,
+                        (Set<String> existingSet, Set<String> newSet) -> {
+                            existingSet.addAll(newSet);
+                            return existingSet;
+                        },
+                        ConcurrentHashMap::new
+                ));
 
-                            // keep only the common words
-                            uInterV.retainAll(vSet);
+        int numThreads = Runtime.getRuntime().availableProcessors(); // You can adjust this based on your needs
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-                            float intersection = uInterV.size();
+        idToTokens.forEach((u, uSet) -> {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                idToTokens.forEach((v, vSet) -> {
+                    if(u > v) return ;
+                    HashSet<String> tempV = new HashSet<>(vSet);
+                    HashSet<String> tempU = new HashSet<>(uSet);
 
-                            // now get the union
-                            vSet.addAll(uSet);
-                            float union = vSet.size();
-                            float jaccardSimilarity = intersection / union;
+                    Set<String> uInterV = new HashSet<>(tempU);
+                    // keep only the common words
+                    uInterV.retainAll(tempV);
+                    float intersection = uInterV.size();
+                    // now get the union
+                    tempV.addAll(tempU);
+                    float union = tempV.size();
+                    float jaccardSimilarity = intersection / union;
+                    // check if the similarity of u and v is > threshold and add a link between them
+                    if (jaccardSimilarity >= threshold) {
+                        graph.get(u).add(v);
+                        graph.get(v).add(u);
+                    }
+                });
+            }, executor);
 
-                            // check if the similarity of u and v is > threshold and add a link between them
-                            if (jaccardSimilarity >= threshold) {
-                                graph.get(u).add(v);
-                                graph.get(v).add(u);
-                            }
-                        }))
-        ).join();
+            futures.add(future);
+        });
+
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allOf.join();
+        executor.shutdown();
 
         return this;
     }
