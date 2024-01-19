@@ -21,7 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 
 @RestController()
 @RequestMapping("/api/books")
@@ -41,20 +43,29 @@ public class BookStoreController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ArrayList<Book>> fetchBooks(
+    public ResponseEntity<List<Book>> fetchBooks(
             @RequestParam String pattern,
             @RequestParam boolean isRegex,
             @RequestParam OrderAlgorithm algorithm
     ) throws IOException, ExecutionException, InterruptedException {
-        ArrayList<Integer> results = fileLookupService.getCandidate(pattern, isRegex);
-        ArrayList<Book> books = orderOutputService.order(results, algorithm);
+        long startTime = System.currentTimeMillis();
+        List<Integer> results = fileLookupService.getCandidate(pattern, isRegex);
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time Taken to search while regex is " + isRegex + " is: " + (endTime - startTime));
+
+        startTime = System.currentTimeMillis();
+        List<Book> books = orderOutputService.order(results, algorithm);
+        endTime = System.currentTimeMillis();
+        System.out.println("Time Taken to generate and order is: " + (endTime - startTime));
+
+
         return ResponseEntity
                 .status(200)
                 .body(books);
     }
 
     @GetMapping("/random")
-    public ResponseEntity<ArrayList<Book>> randomBooks() throws IOException {
+    public ResponseEntity<List<Book>> randomBooks() throws IOException {
         ArrayList<Book> books = randomBookService.fetch();
         return ResponseEntity
                 .status(200)

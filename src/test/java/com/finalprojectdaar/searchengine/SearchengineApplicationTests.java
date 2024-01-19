@@ -24,7 +24,6 @@ class SearchengineApplicationTests {
 		RegexToDfa regex = new RegexToDfa();
 		State q0 = regex.buildDfa("Bill#");
 		boolean result = regex.findMatch(q0, 2);
-		System.out.println(result);
 		assertThat(result).isEqualTo(true);
 	}
 

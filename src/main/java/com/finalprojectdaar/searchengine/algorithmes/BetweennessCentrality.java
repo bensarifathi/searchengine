@@ -3,9 +3,9 @@ package com.finalprojectdaar.searchengine.algorithmes;
 import java.util.*;
 
 public class BetweennessCentrality {
-    private Map<Integer, ArrayList<Integer>> graph = new HashMap<>();
+    private Map<Integer, List<Integer>> graph = new HashMap<>();
 
-    public BetweennessCentrality(Map<Integer, ArrayList<Integer>> graph) {
+    public BetweennessCentrality(Map<Integer, List<Integer>> graph) {
         this.graph = graph;
     }
 

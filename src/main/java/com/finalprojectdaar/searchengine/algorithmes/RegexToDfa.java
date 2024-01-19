@@ -4,10 +4,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -122,29 +120,30 @@ public class RegexToDfa {
     public boolean findMatch(State q0, Integer textID) throws IOException {
         DfaTraversal dfat = new DfaTraversal(q0, input);
         String fileName = "books/" + textID + ".txt";
-        System.out.println(fileName);
         Resource resource = new ClassPathResource(fileName);
-        BufferedReader buffer = new BufferedReader(new FileReader(resource.getFile()));
-        String line;
-        while ((line = buffer.readLine()) != null) {
-            dfat.resetState();
-            boolean acc;
-            for (int i = 0; i < line.length(); i++) {
-                for (int j = i; j < line.length(); j++) {
-                    if (dfat.setCharacter(line.charAt(j))) {
-                        acc = dfat.traverse();
-                        if (acc) {
-                            return true;
+        try (InputStream inputStream = resource.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+            // Read each line and process it
+            String line;
+            while ((line = reader.readLine()) != null) {
+                dfat.resetState();
+                for (int i = 0; i < line.length(); i++) {
+                    for (int j = i; j < line.length(); j++) {
+                        if (dfat.setCharacter(line.charAt(j))) {
+                            boolean matched = dfat.traverse();
+                            if (matched) {
+                                return true;
+                            }
+                        } else {
+                            dfat.resetState();
+                            break;
                         }
-                    } else
-                    {
-                        dfat.resetState();
-                        break;
                     }
                 }
             }
         }
-        buffer.close();
+
         return false;
     }
 }

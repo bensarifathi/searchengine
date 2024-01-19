@@ -7,9 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DegreeCentrality {
-    private Map<Integer, ArrayList<Integer>> graph;
+    private Map<Integer, List<Integer>> graph;
 
-    public DegreeCentrality(Map<Integer, ArrayList<Integer>> graph) {
+    public DegreeCentrality(Map<Integer, List<Integer>> graph) {
         this.graph = graph;
     }
 
@@ -59,8 +59,6 @@ public class DegreeCentrality {
         for (Map.Entry<Integer, Integer> entry : entryList) {
             sortedIds.add(entry.getKey());
         }
-        System.out.println(sortedIds);
-        // return the ordered array
         return sortedIds;
     }
 

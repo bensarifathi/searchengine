@@ -1,4 +1,5 @@
 package com.finalprojectdaar.searchengine.algorithmes;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -8,22 +9,10 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 public class KMP {
-    String pattern;
 
-    public int[] getLspArray() {
-        return lspArray;
-    }
-
-    int[] lspArray;
-
-    public void init(String pattern) {
-        this.pattern = pattern;
-        this.lspArray = new int[pattern.length()];
-        fillLspArray();
-    }
-
-    private void fillLspArray() {
-        int patLen = lspArray.length;
+    public int[] getLSPArray(String pattern) {
+        int patLen = pattern.length();
+        int[] lspArray = new int[patLen];
         int i = 1;
         int j = 0;
         while (i < patLen) {
@@ -31,22 +20,21 @@ public class KMP {
                 j++;
                 lspArray[i] = j;
                 i++;
-            }
-            else {
-                if (j == 0){
+            } else {
+                if (j == 0) {
                     lspArray[i] = j;
                     i++;
-                }else {
-                    j = lspArray[j-1];
+                } else {
+                    j = lspArray[j - 1];
                 }
             }
         }
+        return lspArray;
     }
 
-    public boolean findMatch(Integer textID) throws IOException {
+    public boolean findMatch(int[] lspArray, String pattern, int textID) throws IOException {
         String fileName = "books/" + textID + ".txt";
         Resource resource = new ClassPathResource(fileName);
-        int hitRate = 0;
         try (InputStream inputStream = resource.getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 
@@ -54,7 +42,7 @@ public class KMP {
             String text;
             while ((text = reader.readLine()) != null) {
                 int textLen = text.length();
-                int patLen = pattern.length();
+                int patLen = lspArray.length;
                 int i = 0; // text index
                 int j = 0; // pattern index
 
@@ -65,13 +53,9 @@ public class KMP {
                     }
                     if (j == patLen) {
                         return true;
-                        /*
-                        hitRate ++;
-                        j = lspArray[j-1];
-                        */
                     } else if (i < textLen && pattern.charAt(j) != text.charAt(i)) {
                         if (j != 0)
-                            j = lspArray[j-1];
+                            j = lspArray[j - 1];
                         else
                             i++;
                     }

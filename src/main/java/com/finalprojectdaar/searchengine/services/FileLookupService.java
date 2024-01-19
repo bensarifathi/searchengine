@@ -32,14 +32,14 @@ public class FileLookupService {
         Resource resource = new ClassPathResource(baseDirPath);
         File baseDir = resource.getFile();
         File[] directoryListing = baseDir.listFiles();
-        if(directoryListing == null) {
+        if (directoryListing == null) {
             return ids;
         }
-        for (File file: directoryListing) {
-            if(file.isDirectory())
+        for (File file : directoryListing) {
+            if (file.isDirectory())
                 continue;
             String filename = file.getName();
-            if(!filename.endsWith(".txt"))
+            if (!filename.endsWith(".txt"))
                 continue;
             int bookID = Integer.parseInt(filename.split(".txt")[0]);
             ids.add(bookID);
@@ -47,41 +47,53 @@ public class FileLookupService {
         return ids;
     }
 
-    public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException, ExecutionException, InterruptedException {
-        ArrayList<Integer> matchIds = new ArrayList<>();
+    private List<Integer> getCandidateRegex(String pattern) throws IOException, InterruptedException {
+        List<Integer> matchIds = new CopyOnWriteArrayList<Integer>();
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-        List<Callable<Boolean>> tasks = new ArrayList<>();
+        List<Callable<Void>> tasks = new ArrayList<>();
         State q0 = regexAlgo.buildDfa(pattern + "#");
+
         for (Integer id : bookIds) {
             tasks.add(() -> {
-                boolean resulat;
-                if (isRegex)
-                    resulat = findMatchRegex(q0, id);
-                else
-                    resulat = findMatchKMP(pattern, id);
-                return resulat;
+                if (regexAlgo.findMatch(q0, id)) matchIds.add(id);
+                return null;
             });
         }
 
-        List<Future<Boolean>> futures = executor.invokeAll(tasks);
+        executor.invokeAll(tasks);
+        executor.shutdown();
 
-        for (int i=0; i < futures.size(); i++) {
-            Future<Boolean> future = futures.get(i);
-            boolean result = future.get();
-            if (result)
-                matchIds.add(bookIds.get(i));
-        }
         return matchIds;
     }
 
-    private boolean findMatchRegex(State q0, Integer id) throws IOException {
-        return regexAlgo.findMatch(q0, id);
+    private List<Integer> getCandidateKMP(String pattern) throws IOException, InterruptedException {
+        List<Integer> matchIds = new CopyOnWriteArrayList<Integer>();
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+        List<Callable<Void>> tasks = new ArrayList<>();
+        int[] lspArray = kmpAlgo.getLSPArray(pattern);
+
+        for (Integer id : bookIds) {
+            tasks.add(() -> {
+                if (kmpAlgo.findMatch(lspArray, pattern, id)) matchIds.add(id);
+                return null;
+            });
+        }
+
+        executor.invokeAll(tasks);
+        executor.shutdown();
+
+        return matchIds;
     }
 
-    private boolean findMatchKMP(String pattern, Integer id) throws IOException {
-        kmpAlgo.init(pattern);
-        return kmpAlgo.findMatch(id);
+    public List<Integer> getCandidate(String pattern, boolean isRegex) throws IOException, ExecutionException, InterruptedException {
+        if (isRegex) {
+            return getCandidateRegex(pattern);
+        } else {
+            return getCandidateKMP(pattern);
+        }
     }
 }

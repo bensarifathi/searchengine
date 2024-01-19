@@ -10,18 +10,18 @@ import java.util.stream.Collectors;
 
 
 public class JaccardGraph {
-    private ArrayList<Integer> vertices;
+    private List<Integer> vertices;
 
-    private ConcurrentHashMap<Integer, ArrayList<Integer>> graph = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, List<Integer>> graph = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Set<String>> tokenizedVertices = new ConcurrentHashMap<>();
     private final float threshold = 0.05F;
 
-    public JaccardGraph(ArrayList<Integer> vertices) {
+    public JaccardGraph(List<Integer> vertices) {
         this.vertices = vertices;
         instantiateGraph();
     }
 
-    public Map<Integer, ArrayList<Integer>> getGraph() {
+    public Map<Integer, List<Integer>> getGraph() {
         return graph;
     }
 

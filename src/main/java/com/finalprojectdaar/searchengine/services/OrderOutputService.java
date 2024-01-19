@@ -21,9 +21,8 @@ import java.util.*;
 @Service
 public class OrderOutputService {
 
-    public ArrayList<Book> order(ArrayList<Integer> inputIds, OrderAlgorithm algorithm) throws IOException {
-        ArrayList<Integer> ids;
-        ArrayList<Book> books = new ArrayList<>();
+    public List<Book> order(List<Integer> inputIds, OrderAlgorithm algorithm) throws IOException {
+        List<Integer> ids;
         if(algorithm == OrderAlgorithm.CLOSENESS_CENTRALITY)
             ids = orderWithClosenessCentrality(inputIds);
         else if (algorithm == OrderAlgorithm.BETWEENNESS_CENTRALITY) {
@@ -35,31 +34,31 @@ public class OrderOutputService {
         return bookMapper(ids);
     }
 
-    private ArrayList<Integer> orderWithDegreeCentrality(ArrayList<Integer> nodes) throws IOException {
-        Map<Integer, ArrayList<Integer>> graph = buildJaccardGraph(nodes);
+    private List<Integer> orderWithDegreeCentrality(List<Integer> nodes) throws IOException {
+        Map<Integer, List<Integer>> graph = buildJaccardGraph(nodes);
         DegreeCentrality dc = new DegreeCentrality(graph);
         return dc.getOrderedNodes();
     }
 
-    private ArrayList<Integer> orderWithClosenessCentrality(ArrayList<Integer> nodes) throws IOException {
-        Map<Integer, ArrayList<Integer>> graph = buildJaccardGraph(nodes);
+    private List<Integer> orderWithClosenessCentrality(List<Integer> nodes) throws IOException {
+        Map<Integer, List<Integer>> graph = buildJaccardGraph(nodes);
         ClosenessCentrality cc = new ClosenessCentrality(graph);
         return cc.getOrderedNodes();
     }
 
-    private ArrayList<Integer> orderWithBetweennessCentrality(ArrayList<Integer> nodes) throws IOException {
-        Map<Integer, ArrayList<Integer>> graph = buildJaccardGraph(nodes);
+    private List<Integer> orderWithBetweennessCentrality(List<Integer> nodes) throws IOException {
+        Map<Integer, List<Integer>> graph = buildJaccardGraph(nodes);
         BetweennessCentrality bc = new BetweennessCentrality(graph);
         return bc.getOrderedNodes();
     }
 
-    private static Map<Integer, ArrayList<Integer>> buildJaccardGraph(ArrayList<Integer> nodes) throws IOException {
+    private static Map<Integer, List<Integer>> buildJaccardGraph(List<Integer> nodes) throws IOException {
         JaccardGraph jaccardGraph = new JaccardGraph(nodes);
-        Map<Integer, ArrayList<Integer>> graph = jaccardGraph.buildJaccardGraph().getGraph();
+        Map<Integer, List<Integer>> graph = jaccardGraph.buildJaccardGraph().getGraph();
         return graph;
     }
 
-    private ArrayList<Book> bookMapper(List<Integer> ids) throws IOException {
+    private List<Book> bookMapper(List<Integer> ids) throws IOException {
         // load the resource file
         String fileName = "db/books.json";
         Resource resource = new ClassPathResource(fileName);

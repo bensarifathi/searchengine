@@ -7,9 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ClosenessCentrality {
-    private Map<Integer, ArrayList<Integer>> graph;
+    private Map<Integer, List<Integer>> graph;
 
-    public ClosenessCentrality(Map<Integer, ArrayList<Integer>> graph) {
+    public ClosenessCentrality(Map<Integer, List<Integer>> graph) {
         this.graph = graph;
     }
 
