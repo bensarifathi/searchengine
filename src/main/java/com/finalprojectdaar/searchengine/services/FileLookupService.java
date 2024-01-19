@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 @Service
 public class FileLookupService {
@@ -44,9 +46,7 @@ public class FileLookupService {
         return ids;
     }
 
-    public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException {
-        ArrayList<Integer> matchIds = new ArrayList<>();
-
+    public ArrayList<Integer> getCandidate(String pattern, boolean isRegex) throws IOException, ExecutionException, InterruptedException {
         ArrayList<Integer> matchIds = new ArrayList<>();
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
@@ -57,7 +57,7 @@ public class FileLookupService {
             tasks.add(() -> findMatch(pattern, isRegex, id));
         }
 
-        List<Future<Integer>> futures = executor.invokeAll(tasks);
+        List<Future<Boolean>> futures = executor.invokeAll(tasks);
 
         for (int i = 0; i < futures.size(); i++) {
             Future<Boolean> future = futures.get(i);

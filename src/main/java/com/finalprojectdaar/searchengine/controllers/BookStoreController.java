@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController()
 @RequestMapping("/api/books")
@@ -45,7 +46,7 @@ public class BookStoreController {
             @RequestParam String pattern,
             @RequestParam boolean isRegex,
             @RequestParam OrderAlgorithm algorithm
-    ) throws IOException {
+    ) throws IOException, ExecutionException, InterruptedException {
         ArrayList<Integer> results = fileLookupService.getCandidate(pattern, isRegex);
         ArrayList<Book> books = orderOutputService.order(results, algorithm);
         return ResponseEntity
