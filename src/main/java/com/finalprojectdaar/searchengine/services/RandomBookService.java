@@ -41,12 +41,14 @@ public class RandomBookService {
 
             String author = bookNode.get("author").asText();
             String category = bookNode.get("category").asText();
+            String title = bookNode.get("title").asText();
 
             // Create a new Book object
             Book book = new Book();
             book.setId(Integer.parseInt(id));
             book.setAuthor(author);
             book.setCategory(category);
+            book.setTitle(title);
 
             bookList.add(book);
             count ++;

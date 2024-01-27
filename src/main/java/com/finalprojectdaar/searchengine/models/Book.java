@@ -7,6 +7,16 @@ public class Book {
     private String category;
     private Integer id;
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    private String title;
+
     public String getAuthor() {
         return author;
     }
