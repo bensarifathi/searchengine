@@ -20,10 +20,17 @@ import java.util.*;
 
 @Service
 public class OrderOutputService {
+    private final BookService booksService;
 
-    public List<Book> order(List<Integer> inputIds, OrderAlgorithm algorithm) throws IOException {
+    public OrderOutputService(BookService booksService) {
+        this.booksService = booksService;
+    }
+
+    public List<Integer> order(List<Integer> inputIds, OrderAlgorithm algorithm) throws IOException {
         List<Integer> ids;
-        if(algorithm == OrderAlgorithm.CLOSENESS_CENTRALITY)
+        if (algorithm == OrderAlgorithm.NUMBER_OF_CLICKS)
+            ids = orderWithNumberOfClicks(inputIds);
+        else if (algorithm == OrderAlgorithm.CLOSENESS_CENTRALITY)
             ids = orderWithClosenessCentrality(inputIds);
         else if (algorithm == OrderAlgorithm.BETWEENNESS_CENTRALITY) {
             ids = orderWithBetweennessCentrality(inputIds);
@@ -31,7 +38,17 @@ public class OrderOutputService {
             ids = orderWithDegreeCentrality(inputIds);
         } else
             ids = new ArrayList<>();
-        return bookMapper(ids);
+        return ids;
+    }
+
+    private List<Integer> orderWithNumberOfClicks(List<Integer> nodes) {
+        List<Integer> orderedNodes = new ArrayList<>(nodes);
+        orderedNodes.sort((o1, o2) -> {
+            int clicks1 = booksService.getBookClicks(o1);
+            int clicks2 = booksService.getBookClicks(o2);
+            return clicks2 - clicks1;
+        });
+        return orderedNodes;
     }
 
     private List<Integer> orderWithDegreeCentrality(List<Integer> nodes) throws IOException {
@@ -56,44 +73,6 @@ public class OrderOutputService {
         JaccardGraph jaccardGraph = new JaccardGraph(nodes);
         Map<Integer, List<Integer>> graph = jaccardGraph.buildJaccardGraph().getGraph();
         return graph;
-    }
-
-    private List<Book> bookMapper(List<Integer> ids) throws IOException {
-        // load the resource file
-        String fileName = "db/books.json";
-        Resource resource = new ClassPathResource(fileName);
-        // read json file into jsonNode
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(
-                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)
-        );
-        // parse the JsonNode and create a list of Book objects
-        ArrayList<Book> bookList = new ArrayList<>();
-        Iterator<Map.Entry<String, JsonNode>> elements = rootNode.fields();
-        while (elements.hasNext()) {
-            Map.Entry<String, JsonNode> entry = elements.next();
-            String id = entry.getKey();
-            if (!ids.contains(Integer.parseInt(id)))
-                continue;
-            JsonNode bookNode = entry.getValue();
-
-            String author = bookNode.get("author").asText();
-            String category = bookNode.get("category").asText();
-            String title = bookNode.get("title").asText();
-
-            // Create a new Book object
-            Book book = new Book();
-            book.setId(Integer.parseInt(id));
-            book.setAuthor(author);
-            book.setCategory(category);
-            book.setTitle(title);
-
-            bookList.add(book);
-        }
-        // Custom comparator based on the order of IDs
-        Comparator<Book> idOrderComparator = Comparator.comparingInt(book -> ids.indexOf(book.getId()));
-        bookList.sort(idOrderComparator);
-        return bookList;
     }
 
 }

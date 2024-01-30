@@ -2,9 +2,9 @@ package com.finalprojectdaar.searchengine.controllers;
 
 import com.finalprojectdaar.searchengine.enumerations.OrderAlgorithm;
 import com.finalprojectdaar.searchengine.models.Book;
+import com.finalprojectdaar.searchengine.services.BookService;
 import com.finalprojectdaar.searchengine.services.FileLookupService;
 import com.finalprojectdaar.searchengine.services.OrderOutputService;
-import com.finalprojectdaar.searchengine.services.RandomBookService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -31,15 +31,15 @@ public class BookStoreController {
 
     private final FileLookupService fileLookupService;
     private final OrderOutputService orderOutputService;
-    private final RandomBookService randomBookService;
+    private final BookService booksService;
 
     public BookStoreController(
             FileLookupService fileLookupService, OrderOutputService orderOutputService,
-            RandomBookService randomBookService
+            BookService booksService
     ) {
         this.fileLookupService = fileLookupService;
         this.orderOutputService = orderOutputService;
-        this.randomBookService = randomBookService;
+        this.booksService = booksService;
     }
 
     @GetMapping("")
@@ -54,10 +54,11 @@ public class BookStoreController {
         System.out.println("Time Taken to search while regex is " + isRegex + " is: " + (endTime - startTime));
 
         startTime = System.currentTimeMillis();
-        List<Book> books = orderOutputService.order(results, algorithm);
+        List<Integer> orderedBookIds = orderOutputService.order(results, algorithm);
         endTime = System.currentTimeMillis();
         System.out.println("Time Taken to generate and order is: " + (endTime - startTime));
 
+        List<Book> books = booksService.bookMapper(orderedBookIds);
 
         return ResponseEntity
                 .status(200)
@@ -66,7 +67,7 @@ public class BookStoreController {
 
     @GetMapping("/random")
     public ResponseEntity<List<Book>> randomBooks() throws IOException {
-        ArrayList<Book> books = randomBookService.fetch();
+        List<Book> books = booksService.randomBooks();
         return ResponseEntity
                 .status(200)
                 .body(books);
@@ -78,6 +79,8 @@ public class BookStoreController {
             // Load the text file as a resource
             String fileName = "books/" + bookId + ".txt";
             Resource resource = new ClassPathResource(fileName);
+
+            booksService.clickOnBook(bookId);
 
             // Read the content of the text file into a string
             InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);

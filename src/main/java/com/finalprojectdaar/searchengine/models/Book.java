@@ -6,7 +6,13 @@ public class Book {
     private String author;
     private String category;
     private Integer id;
-
+    private int clicks; // number of clicks on the book
+    public int getClicks() {
+        return clicks;
+    }
+    public void setClicks(int clicks) {
+        this.clicks = clicks;
+    }
     public String getTitle() {
         return title;
     }
