@@ -9,4 +9,7 @@ The goal of this project is to implement a book repository search engine using t
 - **Result Ordering:**
   - Generating Graph links with Jaccard Similarity algorithm
   - DFS/BFS for graph traversal
+  - Degree centrality
+  - Closeness centrality
+  - Betweeness centrality
   - PageRank
